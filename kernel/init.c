@@ -512,6 +512,10 @@ FUNC_NORETURN void z_cstart(void)
 
 	LOG_CORE_INIT();
 
+	// LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
+	LOG_DBG("Debug message");
+	LOG_INF("Information message");
+
 #if defined(CONFIG_MULTITHREADING)
 	/* Note: The z_ready_thread() call in prepare_multithreading() requires
 	 * a dummy thread even if CONFIG_ARCH_HAS_CUSTOM_SWAP_TO_MAIN=y
