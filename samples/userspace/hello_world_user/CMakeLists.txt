@@ -1,8 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
+# add_definitions("-Wall -g -O0")
 
 cmake_minimum_required(VERSION 3.20.0)
 
-find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+set(ZEPHYR_BASE /home/lrc/zephyr-spmp)
+set(ZEPHYR_DIR /home/lrc/zephyr-spmp)
+set(ZEPHYR_SDK_INSTALL_DIR /home/lrc/opt/zephyr-sdk/zephyr-sdk-0.16.1)
+
+find_package(Zephyr REQUIRED HINTS ${ZEPHYR_BASE})
 project(hello_world_user)
 
 target_sources(app PRIVATE src/main.c)

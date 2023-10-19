@@ -39,6 +39,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/pm/device_runtime.h>
 #include <zephyr/internal/syscall_handler.h>
+#include <zephyr/sbi.h>
 LOG_MODULE_REGISTER(os, CONFIG_KERNEL_LOG_LEVEL);
 
 /* the only struct z_kernel instance */
@@ -748,7 +749,7 @@ __boot_func
 FUNC_NO_STACK_PROTECTOR
 FUNC_NORETURN void z_cstart(void)
 {
-	/* gcov hook needed to get the coverage report.*/
+	/* gcov hook needed to get the coverage report (used by compiler).*/
 	gcov_static_init();
 
 	/* initialize early init calls */

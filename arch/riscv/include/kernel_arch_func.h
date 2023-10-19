@@ -32,7 +32,7 @@ static ALWAYS_INLINE void arch_kernel_init(void)
 	__asm__ volatile ("li tp, 0");
 #endif
 #if defined(CONFIG_SMP) || defined(CONFIG_USERSPACE)
-	csr_write(mscratch, &_kernel.cpus[0]);
+	csr_write(sscratch, &_kernel.cpus[0]);
 #endif
 #ifdef CONFIG_SMP
 	_kernel.cpus[0].arch.hartid = csr_read(mhartid);
@@ -53,7 +53,8 @@ static ALWAYS_INLINE void arch_kernel_init(void)
 	}
 #endif
 #ifdef CONFIG_RISCV_PMP
-	z_riscv_pmp_init();
+	// no need to initialize pmp as opensbi has covered this
+	// z_riscv_pmp_init();
 #endif
 #ifdef CONFIG_SOC_PER_CORE_INIT_HOOK
 	soc_per_core_init_hook();

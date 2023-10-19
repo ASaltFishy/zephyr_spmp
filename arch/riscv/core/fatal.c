@@ -221,6 +221,22 @@ void z_riscv_fault(struct arch_esf *esf)
 	}
 #endif /* CONFIG_USERSPACE */
 
+	unsigned long scause;
+
+	__asm__ volatile("csrr %0, scause" : "=r" (scause));
+
+#ifndef CONFIG_SOC_OPENISA_RV32M1_RISCV32
+	unsigned long stval;
+	__asm__ volatile("csrr %0, stval" : "=r" (stval));
+#endif
+
+	scause &= SOC_MCAUSE_EXP_MASK;
+	LOG_ERR("");
+	LOG_ERR(" scause: %ld, %s", scause, cause_str(scause));
+#ifndef CONFIG_SOC_OPENISA_RV32M1_RISCV32
+	LOG_ERR("  stval: %lx", stval);
+#endif
+
 	unsigned int reason = K_ERR_CPU_EXCEPTION;
 
 	if (bad_stack_pointer(esf)) {
