@@ -43,6 +43,7 @@
 			reg = < 0x00 >;
 			status = "okay";
 			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
 
 			hlic0: interrupt-controller {
 				compatible = "riscv,cpu-intc";
@@ -57,6 +58,7 @@
 			reg = < 0x01 >;
 			status = "okay";
 			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
 
 			hlic1: interrupt-controller {
 				compatible = "riscv,cpu-intc";
@@ -71,6 +73,7 @@
 			reg = < 0x02 >;
 			status = "okay";
 			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
 
 			hlic2: interrupt-controller {
 				compatible = "riscv,cpu-intc";
@@ -85,6 +88,7 @@
 			reg = < 0x03 >;
 			status = "okay";
 			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
 
 			hlic3: interrupt-controller {
 				compatible = "riscv,cpu-intc";
@@ -99,6 +103,7 @@
 			reg = < 0x04 >;
 			status = "okay";
 			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
 
 			hlic4: interrupt-controller {
 				compatible = "riscv,cpu-intc";
@@ -113,6 +118,7 @@
 			reg = < 0x05 >;
 			status = "okay";
 			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
 
 			hlic5: interrupt-controller {
 				compatible = "riscv,cpu-intc";
@@ -127,6 +133,7 @@
 			reg = < 0x06 >;
 			status = "okay";
 			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
 
 			hlic6: interrupt-controller {
 				compatible = "riscv,cpu-intc";
@@ -141,6 +148,7 @@
 			reg = < 0x07 >;
 			status = "okay";
 			compatible = "riscv";
+			riscv,isa = "rv64imafdcsu";
 
 			hlic7: interrupt-controller {
 				compatible = "riscv,cpu-intc";

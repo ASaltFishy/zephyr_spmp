@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-add_definitions("-Wall -g")
+# add_definitions("-Wall -g -O0")
 
 cmake_minimum_required(VERSION 3.20.0)
 

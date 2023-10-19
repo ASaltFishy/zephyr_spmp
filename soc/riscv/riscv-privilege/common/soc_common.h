@@ -29,7 +29,7 @@
 #define SOC_MCAUSE_IRQ_MASK          (1 << 31)
 #endif
 
-/* Exception code Mask */
+/* Exception code Mask 0x7FFFFFFFFFFFFFFF if CONFIG_64BIT */
 #define SOC_MCAUSE_EXP_MASK          CONFIG_RISCV_SOC_MCAUSE_EXCEPTION_MASK
 
 #ifndef _ASMLANGUAGE

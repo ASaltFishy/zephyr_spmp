@@ -38,26 +38,26 @@ SECTION_FUNC(reset, __reset)
  * the C domain
  */
 SECTION_FUNC(TEXT, __initialize)
-	csrr a0, mhartid
+	li a0, 0
 	li t0, CONFIG_RV_BOOT_HART
 	beq a0, t0, boot_first_core
 	j boot_secondary_core
 
 boot_first_core:
 
-#ifdef CONFIG_FPU
-	/*
-	 * Enable floating-point.
-	 */
-	li t0, MSTATUS_FS_INIT
-	csrs mstatus, t0
+# #ifdef CONFIG_FPU
+# 	/*
+# 	 * Enable floating-point.
+# 	 */
+# 	li t0, MSTATUS_FS_INIT
+# 	csrs mstatus, t0
 
-	/*
-	 * Floating-point rounding mode set to IEEE-754 default, and clear
-	 * all exception flags.
-	 */
-	fscsr zero
-#endif
+# 	/*
+# 	 * Floating-point rounding mode set to IEEE-754 default, and clear
+# 	 * all exception flags.
+# 	 */
+# 	fscsr zero
+# #endif
 
 #ifdef CONFIG_INIT_STACKS
 	/* Pre-populate all bytes in z_interrupt_stacks with 0xAA */
