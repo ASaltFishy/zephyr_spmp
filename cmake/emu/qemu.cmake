@@ -14,7 +14,7 @@ else()
   set_ifndef(QEMU_binary_suffix ${ARCH})
 endif()
 
-set(qemu_alternate_path $ENV{QEMU_BIN_PATH})
+set(qemu_alternate_path ${QEMU_BIN_PATH})
 if(qemu_alternate_path)
 find_program(
   QEMU
