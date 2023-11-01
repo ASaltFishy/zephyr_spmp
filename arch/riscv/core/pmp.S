@@ -12,6 +12,9 @@
 #define CSR_PMPCFG_BASE  0x3a0
 #define CSR_PMPADDR_BASE 0x3b0
 
+#define CSR_SPMPCFG_BASE 0x1a0
+#define CSR_SPMPADDR_BASE 0x1b0
+
 /*
  * Prototype:
  *
@@ -49,7 +52,7 @@ pmpaddr_store:
 	.rept CONFIG_PMP_SLOTS
 	lr t0, (RV_REGSIZE * _index)(a3)
 	li t1, _index + 1
-	csrw (CSR_PMPADDR_BASE + _index), t0
+	csrw (CSR_SPMPADDR_BASE + _index), t0
 	beq t1, a1, pmpaddr_done
 	.set _index, _index + 1
 	.endr
@@ -78,7 +81,7 @@ pmpcfg_store:
 	.rept (CONFIG_PMP_SLOTS / RV_REGSIZE)
 	lr t0, (RV_REGSIZE * _index)(a4)
 	addi a0, a0, 1
-	csrw (CSR_PMPCFG_BASE + RV_REGSIZE/4 * _index), t0
+	csrw (CSR_SPMPCFG_BASE + RV_REGSIZE/4 * _index), t0
 	beq a0, a1, pmpcfg_done
 	.set _index, _index + 1
 	.endr
@@ -99,7 +102,7 @@ pmpcfg_zerotail:
 	.option norvc
 	.set _index, 0
 	.rept (CONFIG_PMP_SLOTS / RV_REGSIZE)
-	csrw (CSR_PMPCFG_BASE + RV_REGSIZE/4 * _index), zero
+	csrw (CSR_SPMPCFG_BASE + RV_REGSIZE/4 * _index), zero
 	.set _index, _index + 1
 	.endr
 	.option pop

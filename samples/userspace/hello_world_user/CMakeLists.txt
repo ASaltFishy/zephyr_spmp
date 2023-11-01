@@ -11,3 +11,9 @@ find_package(Zephyr REQUIRED HINTS ${ZEPHYR_BASE})
 project(hello_world_user)
 
 target_sources(app PRIVATE src/main.c)
+
+# Code relocation feature
+zephyr_code_relocate(FILES src/main.c  LOCATION RAM1_TEXT_DATA_BSS_RODATA)
+
+
+# zephyr_linker_sources(SECTIONS custom-sections.ld)

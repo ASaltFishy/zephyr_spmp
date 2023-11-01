@@ -54,7 +54,7 @@ static ALWAYS_INLINE void arch_kernel_init(void)
 #endif
 #ifdef CONFIG_RISCV_PMP
 	// no need to initialize pmp as opensbi has covered this
-	// z_riscv_pmp_init();
+	z_riscv_pmp_init();
 #endif
 #ifdef CONFIG_SOC_PER_CORE_INIT_HOOK
 	soc_per_core_init_hook();
