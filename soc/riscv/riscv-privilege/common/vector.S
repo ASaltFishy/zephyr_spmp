@@ -36,6 +36,9 @@ SECTION_FUNC(vectors, __start)
 	 * NOTE: _irq_vector_table is 256-byte aligned. Incorrect alignment
 	 *        of _irq_vector_table breaks this code.
 	 */
+
+	// won't reach here
+
 	la t0, _irq_vector_table /* Load address of interrupt vector table */
 	addi t0, t0, 1 /* Enable vectored mode by setting LSB */
 
@@ -48,7 +51,7 @@ SECTION_FUNC(vectors, __start)
 	la t0, _isr_wrapper
 #endif
 
-	csrw mtvec, t0
+	csrw stvec, t0
 
 	/* Jump to __reset */
 	tail __reset

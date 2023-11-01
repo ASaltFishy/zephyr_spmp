@@ -40,7 +40,7 @@ void z_riscv_irq_priority_set(unsigned int irq, unsigned int prio, uint32_t flag
 
 void arch_irq_enable(unsigned int irq)
 {
-	uint32_t mie;
+	uint32_t sie;
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
 	unsigned int level = irq_get_level(irq);
@@ -53,17 +53,17 @@ void arch_irq_enable(unsigned int irq)
 #endif
 
 	/*
-	 * CSR mie register is updated using atomic instruction csrrs
+	 * CSR sie register is updated using atomic instruction csrrs
 	 * (atomic read and set bits in CSR register)
 	 */
-	__asm__ volatile ("csrrs %0, mie, %1\n"
-			  : "=r" (mie)
+	__asm__ volatile ("csrrs %0, sie, %1\n"
+			  : "=r" (sie)
 			  : "r" (1 << irq));
 }
 
 void arch_irq_disable(unsigned int irq)
 {
-	uint32_t mie;
+	uint32_t sie;
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
 	unsigned int level = irq_get_level(irq);
@@ -76,17 +76,17 @@ void arch_irq_disable(unsigned int irq)
 #endif
 
 	/*
-	 * Use atomic instruction csrrc to disable device interrupt in mie CSR.
+	 * Use atomic instruction csrrc to disable device interrupt in sie CSR.
 	 * (atomic read and clear bits in CSR register)
 	 */
-	__asm__ volatile ("csrrc %0, mie, %1\n"
-			  : "=r" (mie)
+	__asm__ volatile ("csrrc %0, sie, %1\n"
+			  : "=r" (sie)
 			  : "r" (1 << irq));
 }
 
 int arch_irq_is_enabled(unsigned int irq)
 {
-	uint32_t mie;
+	uint32_t sie;
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
 	unsigned int level = irq_get_level(irq);
@@ -97,9 +97,9 @@ int arch_irq_is_enabled(unsigned int irq)
 	}
 #endif
 
-	__asm__ volatile ("csrr %0, mie" : "=r" (mie));
+	__asm__ volatile ("csrr %0, sie" : "=r" (sie));
 
-	return !!(mie & (1 << irq));
+	return !!(sie & (1 << irq));
 }
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
@@ -121,7 +121,7 @@ __weak void soc_interrupt_init(void)
 	/* ensure that all interrupts are disabled */
 	(void)arch_irq_lock();
 
-	__asm__ volatile ("csrwi mie, 0\n"
-			  "csrwi mip, 0\n");
+	__asm__ volatile ("csrwi sie, 0\n"
+			  "csrwi sip, 0\n");
 }
 #endif

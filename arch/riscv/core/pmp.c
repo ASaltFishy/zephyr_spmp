@@ -51,6 +51,7 @@ LOG_MODULE_REGISTER(mpu);
 #define PMP_ADDR_NAPOT(addr, size)	PMP_ADDR(addr | NAPOT_RANGE(size))
 
 #define PMP_NONE 0
+#define SPMP_NONE 0
 
 static void print_pmp_entries(unsigned int start, unsigned int end,
 			      unsigned long *pmp_addr, unsigned long *pmp_cfg,
@@ -59,7 +60,7 @@ static void print_pmp_entries(unsigned int start, unsigned int end,
 	uint8_t *pmp_n_cfg = (uint8_t *)pmp_cfg;
 	unsigned int index;
 
-	LOG_DBG("PMP %s:", banner);
+	LOG_DBG("SPMP %s:", banner);
 	for (index = start; index < end; index++) {
 		unsigned long start, end, tmp;
 
@@ -105,7 +106,7 @@ static void dump_pmp_regs(const char *banner)
 	unsigned long pmp_addr[CONFIG_PMP_SLOTS];
 	unsigned long pmp_cfg[CONFIG_PMP_SLOTS / PMPCFG_STRIDE];
 
-#define PMPADDR_READ(x) pmp_addr[x] = csr_read(pmpaddr##x)
+#define PMPADDR_READ(x) pmp_addr[x] = csr_read(spmpaddr##x)
 
 	FOR_EACH(PMPADDR_READ, (;), 0, 1, 2, 3, 4, 5, 6, 7);
 #if CONFIG_PMP_SLOTS > 8
@@ -115,16 +116,16 @@ static void dump_pmp_regs(const char *banner)
 #undef PMPADDR_READ
 
 #ifdef CONFIG_64BIT
-	pmp_cfg[0] = csr_read(pmpcfg0);
+	pmp_cfg[0] = csr_read(spmpcfg0);
 #if CONFIG_PMP_SLOTS > 8
-	pmp_cfg[1] = csr_read(pmpcfg2);
+	pmp_cfg[1] = csr_read(spmpcfg2);
 #endif
 #else
-	pmp_cfg[0] = csr_read(pmpcfg0);
-	pmp_cfg[1] = csr_read(pmpcfg1);
+	pmp_cfg[0] = csr_read(spmpcfg0);
+	pmp_cfg[1] = csr_read(spmpcfg1);
 #if CONFIG_PMP_SLOTS > 8
-	pmp_cfg[2] = csr_read(pmpcfg2);
-	pmp_cfg[3] = csr_read(pmpcfg3);
+	pmp_cfg[2] = csr_read(spmpcfg2);
+	pmp_cfg[3] = csr_read(spmpcfg3);
 #endif
 #endif
 
@@ -310,8 +311,8 @@ void z_riscv_pmp_init(void)
 	unsigned long pmp_cfg[1];
 	unsigned int index = 0;
 
-	/* The read-only area is always there for every mode */
-	set_pmp_entry(&index, PMP_R | PMP_X | PMP_L,
+	/* The read-only area is always there for every mode, in spmp it's shared read-only */
+	set_pmp_entry(&index, SPMP_S,
 		      (uintptr_t)__rom_region_start,
 		      (size_t)__rom_region_size,
 		      pmp_addr, pmp_cfg, ARRAY_SIZE(pmp_addr));
@@ -322,7 +323,7 @@ void z_riscv_pmp_init(void)
 	 * addresses inaccessible. This will never change so we do it here
 	 * and lock it too.
 	 */
-	set_pmp_entry(&index, PMP_NONE | PMP_L,
+	set_pmp_entry(&index, SPMP_NONE | PMP_L,
 		      (uintptr_t)z_interrupt_stacks[_current_cpu->id],
 		      Z_RISCV_STACK_GUARD_SIZE,
 		      pmp_addr, pmp_cfg, ARRAY_SIZE(pmp_addr));
@@ -478,12 +479,14 @@ void z_riscv_pmp_usermode_init(struct k_thread *thread)
  */
 void z_riscv_pmp_usermode_prepare(struct k_thread *thread)
 {
+	// set ROM spmp to new thread
 	unsigned int index = z_riscv_pmp_thread_init(PMP_U_MODE(thread));
 
 	/* Map the usermode stack */
-	set_pmp_entry(&index, PMP_R | PMP_W,
+	set_pmp_entry(&index, SPMP_R | SPMP_W,
 		      thread->stack_info.start, thread->stack_info.size,
 		      PMP_U_MODE(thread));
+
 
 	thread->arch.u_mode_pmp_domain_offset = index;
 	thread->arch.u_mode_pmp_end_index = index;

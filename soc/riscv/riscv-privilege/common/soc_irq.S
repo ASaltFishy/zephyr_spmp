@@ -47,7 +47,7 @@ WTEXT(__soc_is_irq)
  */
 SECTION_FUNC(exception.other, __soc_is_irq)
 	/* Read mcause and check if interrupt bit is set */
-	csrr t0, mcause
+	csrr t0, scause
 	li t1, SOC_MCAUSE_IRQ_MASK
 	and t0, t0, t1
 

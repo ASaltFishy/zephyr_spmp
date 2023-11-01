@@ -172,9 +172,6 @@ zephyr_linker_section_configure(SECTION log_strings INPUT ".log_strings*" KEEP S
 zephyr_linker_section(NAME log_const KVMA RAM_REGION GROUP RODATA_REGION NOINPUT ${XIP_ALIGN_WITH_INPUT})
 zephyr_linker_section_configure(SECTION log_const INPUT ".log_const_*" KEEP SORT NAME)
 
-zephyr_linker_section(NAME log_backends KVMA RAM_REGION GROUP RODATA_REGION NOINPUT ${XIP_ALIGN_WITH_INPUT})
-zephyr_linker_section_configure(SECTION log_backends INPUT ".log_backends.*" KEEP)
-
 zephyr_iterable_section(NAME shell KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN 4)
 
 zephyr_linker_section(NAME shell_root_cmds KVMA RAM_REGION GROUP RODATA_REGION NOINPUT ${XIP_ALIGN_WITH_INPUT})
@@ -191,3 +188,14 @@ zephyr_linker_section_configure(SECTION zephyr_dbg_info INPUT ".zephyr_dbg_info"
 zephyr_linker_section(NAME device_handles KVMA RAM_REGION GROUP RODATA_REGION NOINPUT ${XIP_ALIGN_WITH_INPUT} ENDALIGN 16)
 zephyr_linker_section_configure(SECTION device_handles INPUT .__device_handles_pass1* KEEP SORT NAME PASS LINKER_DEVICE_HANDLES_PASS1)
 zephyr_linker_section_configure(SECTION device_handles INPUT .__device_handles_pass2* KEEP SORT NAME PASS NOT LINKER_DEVICE_HANDLES_PASS1)
+
+zephyr_iterable_section(NAME _static_thread_data KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN 4)
+
+if (CONFIG_BT_IAS)
+  zephyr_iterable_section(NAME bt_ias_cb KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN 4)
+endif()
+
+if (CONFIG_LOG)
+  zephyr_iterable_section(NAME log_link KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN 4)
+  zephyr_iterable_section(NAME log_backend KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN 4)
+endif()

@@ -34,6 +34,7 @@
 #include <kswap.h>
 #include <zephyr/timing/timing.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sbi.h>
 LOG_MODULE_REGISTER(os, CONFIG_KERNEL_LOG_LEVEL);
 
 /* the only struct z_kernel instance */
@@ -501,7 +502,7 @@ __boot_func
 FUNC_NO_STACK_PROTECTOR
 FUNC_NORETURN void z_cstart(void)
 {
-	/* gcov hook needed to get the coverage report.*/
+	/* gcov hook needed to get the coverage report (used by compiler).*/
 	gcov_static_init();
 
 	/* initialize early init calls */
@@ -511,6 +512,10 @@ FUNC_NORETURN void z_cstart(void)
 	arch_kernel_init();
 
 	LOG_CORE_INIT();
+
+	// LOG_DBG("Debug message");
+	// LOG_INF("Information message");
+	// printk("Debug message %s\n", CONFIG_BOARD);
 
 #if defined(CONFIG_MULTITHREADING)
 	/* Note: The z_ready_thread() call in prepare_multithreading() requires
