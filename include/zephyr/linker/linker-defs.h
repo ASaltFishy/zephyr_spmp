@@ -227,6 +227,9 @@ extern char __rom_region_start[];
 extern char __rom_region_end[];
 extern char __rom_region_size[];
 
+extern char __ram1_start_addr[];
+extern char __ram1_size[];
+
 /* Includes all ROMable data, i.e. the size of the output image file. */
 extern char _flash_used[];
 

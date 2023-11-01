@@ -401,8 +401,8 @@ is_user_syscall:
 	 * We came from userspace and need to reconfigure the
 	 * PMP for kernel mode stack guard.
 	 */
-	# lr a0, ___cpu_t_current_OFFSET(s0)
-	# call z_riscv_pmp_stackguard_enable
+	lr a0, ___cpu_t_current_OFFSET(s0)
+	call z_riscv_pmp_stackguard_enable
 #endif
 
 	/* It is safe to re-enable IRQs now */
@@ -628,8 +628,8 @@ fp_trap_exit:
 
 #ifdef CONFIG_PMP_STACK_GUARD
 	/* Remove kernel stack guard and Reconfigure PMP for user mode */
-	# lr a0, ___cpu_t_current_OFFSET(s0)
-	# call z_riscv_pmp_usermode_enable
+	lr a0, ___cpu_t_current_OFFSET(s0)
+	call z_riscv_pmp_usermode_enable
 #endif
 
 	/* Set our per-thread usermode flag */

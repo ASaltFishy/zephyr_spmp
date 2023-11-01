@@ -161,7 +161,7 @@
 
 	ram0: memory@80200000 {
 		device_type = "memory";
-		reg = < 0x80200000 0x10000000 >;
+		reg = < 0x80200000 0x100000 >;
 	};
 
 	soc {

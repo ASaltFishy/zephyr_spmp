@@ -532,8 +532,6 @@ FUNC_NORETURN void z_cstart(void)
 	z_sys_init_run_level(INIT_LEVEL_PRE_KERNEL_1);
 	z_sys_init_run_level(INIT_LEVEL_PRE_KERNEL_2);
 
-	SBI_PUTCHAR('Y');
-
 #ifdef CONFIG_STACK_CANARIES
 	uintptr_t stack_guard;
 

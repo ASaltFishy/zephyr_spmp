@@ -5,9 +5,22 @@ file /home/lrc/zephyr-spmp/samples/userspace/hello_world_user/build/zephyr/zephy
 
 # initialize: 
 # b *0x80200000
-# b z_cstart
+b z_cstart
 # b __initialize
 # b __reset
+
+b z_riscv_pmp_init
+# b z_riscv_write_pmp_entries
+b z_riscv_pmp_usermode_prepare
+# b z_cbvprintf_impl
+b z_thread_entry
+
+b arch_is_user_context
+
+b zephyr_fputc
+b picolibc_put
+
+# b /home/lrc/zephyr-spmp/lib/os/cbprintf_complete.c:1582
 
 # b /home/lrc/zephyr-spmp/arch/riscv/core/thread.c:110
 # b switch_to_main_thread

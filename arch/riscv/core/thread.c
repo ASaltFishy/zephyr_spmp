@@ -100,7 +100,7 @@ void arch_new_thread(struct k_thread *thread, k_thread_stack_t *stack,
 
 #if defined(CONFIG_PMP_STACK_GUARD)
 	/* Setup PMP regions of PMP stack guard of thread. */
-	// z_riscv_pmp_stackguard_prepare(thread);
+	z_riscv_pmp_stackguard_prepare(thread);
 #endif /* CONFIG_PMP_STACK_GUARD */
 
 #ifdef CONFIG_RISCV_SOC_CONTEXT_SAVE
@@ -159,6 +159,8 @@ FUNC_NORETURN void arch_user_mode_enter(k_thread_entry_t user_entry,
 	/* Disable IRQs for m-mode until the mode switch */
 	status = INSERT_FIELD(status, SSTATUS_SIE, 0);
 
+	// status = INSERT_FIELD(status, SSTATUS_SUM, 1);
+
 	csr_write(sstatus, status);
 	csr_write(sepc, z_thread_entry);
 
@@ -168,12 +170,9 @@ FUNC_NORETURN void arch_user_mode_enter(k_thread_entry_t user_entry,
 #endif
 
 	/* Set up Physical Memory Protection */
-	// z_riscv_pmp_usermode_prepare(_current);
-	// z_riscv_pmp_usermode_enable(_current);
+	z_riscv_pmp_usermode_prepare(_current);
+	z_riscv_pmp_usermode_enable(_current);
 
-	// uint64_t cpu_struct = csr_read(sscratch);
-	// ((_cpu_t *)cpu_struct)->arch.user_exc_sp = top_of_priv_stack;
-	// (_cpu_t *)csr_read(sscratch);
 
 	/* preserve stack pointer for next exception entry */
 	arch_curr_cpu()->arch.user_exc_sp = top_of_priv_stack;
@@ -186,17 +185,10 @@ FUNC_NORETURN void arch_user_mode_enter(k_thread_entry_t user_entry,
 	register void *a3 __asm__("a3") = p3;
 
 	__asm__ volatile (
-	"mv sp, %4"
+	"mv sp, %4; sret"
 	:
 	: "r" (a0), "r" (a1), "r" (a2), "r" (a3), "r" (top_of_user_stack)
 	: "memory");
-
-	__asm__ volatile (
-    "sret"
-    :
-    :
-    :
-	);
 
 	CODE_UNREACHABLE;
 }
