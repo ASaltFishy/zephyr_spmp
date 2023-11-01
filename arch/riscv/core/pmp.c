@@ -487,10 +487,6 @@ void z_riscv_pmp_usermode_prepare(struct k_thread *thread)
 		      thread->stack_info.start, thread->stack_info.size,
 		      PMP_U_MODE(thread));
 
-	set_pmp_entry(&index, SPMP_R | SPMP_X | SPMP_W,
-		      (uintptr_t)__ram1_start_addr,
-		      (size_t)__ram1_size,
-		      PMP_U_MODE(thread));
 
 	thread->arch.u_mode_pmp_domain_offset = index;
 	thread->arch.u_mode_pmp_end_index = index;
