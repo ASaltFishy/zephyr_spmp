@@ -10,8 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-// #include <zephyr/sys/util.h>
-// #include <zephyr/random/rand32.h>
 #include <zephyr/sys_clock.h>
 #include <zephyr/sys/libc-hooks.h>
 
