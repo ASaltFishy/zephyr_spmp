@@ -160,6 +160,8 @@
 #define SSTATUS_SPP_S 	(1UL << 8)
 #define SSTATUS_SPP_U	(0UL << 8)
 #define SSTATUS_FS_INIT  (1UL << 13)
+#define SSTATUS_FS_CLEAN (2UL << 13)
+#define SSTATUS_FS_DIRTY (3UL << 13)
 
 /* This comes from openisa_rv32m1, but doesn't seem to hurt on other
  * platforms:

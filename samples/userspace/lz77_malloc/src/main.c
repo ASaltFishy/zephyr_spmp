@@ -142,8 +142,8 @@ static void user_function(void *p1, void *p2, void *p3) {
 	uint64_t stop_time = k_uptime_get();
 
 
-    printf("time:%lld\n", start_time);
-	printf("timex:%lld\n", stop_time);
+    printf("time:%lld ms\n", start_time);
+	printf("timex:%lld ms\n", stop_time);
 }
 
 

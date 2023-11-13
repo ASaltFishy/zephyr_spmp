@@ -1,10 +1,10 @@
 target remote localhost:1234
 dir /home/lrc/zephyr-spmp
 # file /home/lrc/zephyr-spmp/opensbi/build/platform/generic/firmware/fw_jump.elf
-file /home/lrc/zephyr-spmp/samples/userspace/lz77/build/zephyr/zephyr.elf
+file /home/lrc/zephyr-spmp/samples/userspace/linpack_float/build/zephyr/zephyr.elf
 
 # initialize: 
-# b *0x80200000
+b *0x80200000
 # b z_cstart
 # b __initialize
 # b __reset
@@ -23,10 +23,10 @@ b z_thread_entry
 # b switch_to_main_thread
 # b arch_new_thread
 # b /home/lrc/zephyr-spmp/arch/riscv/core/isr.S:614
-b arch_user_mode_enter
+# b arch_user_mode_enter
 # b is_user_syscall
 
-b sbi_hart_pmp_configure
+# b sbi_hart_pmp_configure
 b _isr_wrapper
 # b __soc_is_irq
 
@@ -36,8 +36,9 @@ b sbi_trap_handler
 
 
 b user_function
+b linpack
 b malloc
-b lz77_main
+
 b k_mem_domain_add_partition
 
 layout src

@@ -10,7 +10,7 @@ set(ZEPHYR_SDK_INSTALL_DIR /home/lrc/opt/zephyr-sdk/zephyr-sdk-0.16.1)
 
 
 find_package(Zephyr REQUIRED HINTS ${ZEPHYR_BASE})
-project(lz77_malloc)
+project(linpack_float)
 
 target_sources(app PRIVATE src/main.c)
 
