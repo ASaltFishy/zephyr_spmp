@@ -28,7 +28,7 @@ SECTION_FUNC(exception.other, __soc_handle_irq)
 	/* Clear exception number from CSR mip register */
 	li t1, 1
 	sll t0, t1, a0
-	csrrc t1, mip, t0
+	csrrc t1, sip, t0
 
 	/* Return */
 	ret
@@ -48,7 +48,7 @@ WTEXT(__soc_is_irq)
 SECTION_FUNC(exception.other, __soc_is_irq)
 	/* Read mcause and check if interrupt bit is set */
 	csrr t0, scause
-	li t1, SOC_MCAUSE_IRQ_MASK
+	li t1, SOC_SCAUSE_IRQ_MASK
 	and t0, t0, t1
 
 	/* If interrupt bit is not set, return with 0 */

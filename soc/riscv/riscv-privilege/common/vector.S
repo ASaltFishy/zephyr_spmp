@@ -14,6 +14,8 @@ GTEXT(__start)
 GTEXT(__initialize)
 GTEXT(_isr_wrapper)
 
+.global __start
+
 SECTION_FUNC(vectors, __start)
 #if defined(CONFIG_RISCV_GP)
 	/* Initialize global pointer */

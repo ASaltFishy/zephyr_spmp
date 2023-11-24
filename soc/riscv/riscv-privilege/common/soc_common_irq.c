@@ -40,7 +40,7 @@ void z_riscv_irq_priority_set(unsigned int irq, unsigned int prio, uint32_t flag
 
 void arch_irq_enable(unsigned int irq)
 {
-	uint32_t sie;
+	// uint32_t sie;
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
 	unsigned int level = irq_get_level(irq);
@@ -56,14 +56,12 @@ void arch_irq_enable(unsigned int irq)
 	 * CSR sie register is updated using atomic instruction csrrs
 	 * (atomic read and set bits in CSR register)
 	 */
-	__asm__ volatile ("csrrs %0, sie, %1\n"
-			  : "=r" (sie)
-			  : "r" (1 << irq));
+	csr_read_set(sie, 1 << irq);
 }
 
 void arch_irq_disable(unsigned int irq)
 {
-	uint32_t sie;
+	// uint32_t sie;
 
 #if defined(CONFIG_RISCV_HAS_PLIC)
 	unsigned int level = irq_get_level(irq);
@@ -79,9 +77,7 @@ void arch_irq_disable(unsigned int irq)
 	 * Use atomic instruction csrrc to disable device interrupt in sie CSR.
 	 * (atomic read and clear bits in CSR register)
 	 */
-	__asm__ volatile ("csrrc %0, sie, %1\n"
-			  : "=r" (sie)
-			  : "r" (1 << irq));
+	csr_read_clear(sie, 1 << irq);
 }
 
 int arch_irq_is_enabled(unsigned int irq)
@@ -97,7 +93,8 @@ int arch_irq_is_enabled(unsigned int irq)
 	}
 #endif
 
-	__asm__ volatile ("csrr %0, sie" : "=r" (sie));
+	// __asm__ volatile ("csrr %0, sie" : "=r" (sie))
+	sie = csr_read(sie);
 
 	return !!(sie & (1 << irq));
 }
@@ -120,8 +117,8 @@ __weak void soc_interrupt_init(void)
 {
 	/* ensure that all interrupts are disabled */
 	(void)arch_irq_lock();
-
-	__asm__ volatile ("csrwi sie, 0\n"
-			  "csrwi sip, 0\n");
+	
+	csr_write(sie, 0);
+	csr_write(sip, 0);
 }
 #endif

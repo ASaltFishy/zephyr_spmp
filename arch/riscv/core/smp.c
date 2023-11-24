@@ -9,6 +9,10 @@
 #include <ksched.h>
 #include <zephyr/irq.h>
 #include <zephyr/sys/atomic.h>
+#include <zephyr/arch/riscv/sbi.h>
+#include <zephyr/cpumask.h>
+
+extern char __start[];
 
 volatile struct {
 	arch_cpustart_t fn;
@@ -26,6 +30,7 @@ void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz,
 
 	riscv_cpu_sp = Z_KERNEL_STACK_BUFFER(stack) + sz;
 	riscv_cpu_wake_flag = _kernel.cpus[cpu_num].arch.hartid;
+	sbi_hsm_hart_start(_kernel.cpus[cpu_num].arch.hartid,(unsigned long)__start);
 
 	while (riscv_cpu_wake_flag != 0U) {
 		;
@@ -42,7 +47,7 @@ void z_riscv_secondary_cpu_init(int hartid)
 			cpu_num = i;
 		}
 	}
-	csr_write(mscratch, &_kernel.cpus[cpu_num]);
+	csr_write(sscratch, &_kernel.cpus[cpu_num]);
 #ifdef CONFIG_SMP
 	_kernel.cpus[cpu_num].arch.online = true;
 #endif
@@ -56,7 +61,7 @@ void z_riscv_secondary_cpu_init(int hartid)
 	z_riscv_pmp_init();
 #endif
 #ifdef CONFIG_SMP
-	irq_enable(RISCV_MACHINE_SOFT_IRQ);
+	irq_enable(RISCV_SUPERVISOR_SOFT_IRQ);
 #endif
 	riscv_cpu_init[cpu_num].fn(riscv_cpu_init[cpu_num].arg);
 }
@@ -78,7 +83,11 @@ void arch_sched_ipi(void)
 	for (unsigned int i = 0; i < num_cpus; i++) {
 		if (i != id && _kernel.cpus[i].arch.online) {
 			atomic_or(&cpu_pending_ipi[i], IPI_SCHED);
-			MSIP(_kernel.cpus[i].arch.hartid) = 1;
+			uint64_t cpumask = 0;
+			set_bit(&cpumask,_kernel.cpus[i].arch.hartid);
+			// hart-mask_base starts from 0
+			sbi_send_ipi(cpumask,0);
+			// MSIP(_kernel.cpus[i].arch.hartid) = 1;
 		}
 	}
 
@@ -89,7 +98,8 @@ void arch_sched_ipi(void)
 void z_riscv_flush_fpu_ipi(unsigned int cpu)
 {
 	atomic_or(&cpu_pending_ipi[cpu], IPI_FPU_FLUSH);
-	MSIP(_kernel.cpus[cpu].arch.hartid) = 1;
+	// opensbi has already covered this.
+	// MSIP(_kernel.cpus[cpu].arch.hartid) = 1;
 }
 #endif
 
@@ -97,7 +107,8 @@ static void ipi_handler(const void *unused)
 {
 	ARG_UNUSED(unused);
 
-	MSIP(csr_read(mhartid)) = 0;
+	// opensbi has already covered this.
+	// MSIP(csr_read(mhartid)) = 0;
 
 	atomic_val_t pending_ipi = atomic_clear(&cpu_pending_ipi[_current_cpu->id]);
 
@@ -107,7 +118,7 @@ static void ipi_handler(const void *unused)
 #ifdef CONFIG_FPU_SHARING
 	if (pending_ipi & IPI_FPU_FLUSH) {
 		/* disable IRQs */
-		csr_clear(mstatus, MSTATUS_IEN);
+		csr_clear(sstatus, SSTATUS_IEN);
 		/* perform the flush */
 		z_riscv_flush_local_fpu();
 		/*
@@ -122,8 +133,8 @@ static int riscv_smp_init(const struct device *dev)
 {
 	ARG_UNUSED(dev);
 
-	IRQ_CONNECT(RISCV_MACHINE_SOFT_IRQ, 0, ipi_handler, NULL, 0);
-	irq_enable(RISCV_MACHINE_SOFT_IRQ);
+	IRQ_CONNECT(RISCV_SUPERVISOR_SOFT_IRQ, 0, ipi_handler, NULL, 0);
+	irq_enable(RISCV_SUPERVISOR_SOFT_IRQ);
 
 	return 0;
 }

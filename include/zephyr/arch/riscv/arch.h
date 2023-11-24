@@ -266,7 +266,7 @@ static ALWAYS_INLINE bool arch_irq_unlocked(unsigned int key)
 #ifdef CONFIG_RISCV_SOC_HAS_CUSTOM_IRQ_LOCK_OPS
 	return z_soc_irq_unlocked(key);
 #else
-	return (key & MSTATUS_IEN) != 0;
+	return (key & SSTATUS_IEN) != 0;
 #endif
 }
 

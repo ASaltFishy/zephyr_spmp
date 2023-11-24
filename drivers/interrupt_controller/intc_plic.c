@@ -198,14 +198,14 @@ static int plic_init(const struct device *dev)
 	regs->threshold_prio = 0U;
 
 	/* Setup IRQ handler for PLIC driver */
-	IRQ_CONNECT(RISCV_MACHINE_EXT_IRQ,
+	IRQ_CONNECT(RISCV_SUPERVISOR_EXT_IRQ,
 		    0,
 		    plic_irq_handler,
 		    NULL,
 		    0);
 
 	/* Enable IRQ for PLIC driver */
-	irq_enable(RISCV_MACHINE_EXT_IRQ);
+	irq_enable(RISCV_SUPERVISOR_EXT_IRQ);
 
 	return 0;
 }

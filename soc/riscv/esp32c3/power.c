@@ -41,7 +41,7 @@ __weak void pm_state_exit_post_ops(enum pm_state state, uint8_t substate_id)
 		/* Nothing to do. */
 		break;
 	case PM_STATE_STANDBY:
-		irq_unlock(MSTATUS_IEN);
+		irq_unlock(SSTATUS_IEN);
 		__asm__ volatile("wfi");
 		esp_light_sleep_start();
 		break;

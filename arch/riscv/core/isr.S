@@ -157,7 +157,7 @@ SECTION_FUNC(exception.entry, _isr_wrapper)
 	sr s0, __z_arch_esf_t_s0_OFFSET(sp)
 	get_current_cpu s0
 
-	/* Save MEPC register */
+	/* Save SEPC register */
 	csrr t0, sepc
 	sr t0, __z_arch_esf_t_mepc_OFFSET(sp)
 
@@ -280,14 +280,14 @@ no_fp:	/* increment _current->arch.exception_depth */
 	 * to report the exception.
 	 */
 	csrr t0, scause
-	li t2, SOC_MCAUSE_EXP_MASK
+	li t2, SOC_SCAUSE_EXP_MASK
 	and t0, t0, t2
 
 	/*
 	 * If mcause == SOC_MCAUSE_ECALL_EXP, handle system call from
 	 * kernel thread.
 	 */
-	li t1, SOC_MCAUSE_ECALL_EXP
+	li t1, SOC_SCAUSE_S_CALL_EXP
 	beq t0, t1, is_kernel_syscall
 
 #ifdef CONFIG_USERSPACE
@@ -295,7 +295,7 @@ no_fp:	/* increment _current->arch.exception_depth */
 	 * If mcause == SOC_MCAUSE_USER_ECALL_EXP, handle system call
 	 * for user mode thread.
 	 */
-	li t1, SOC_MCAUSE_USER_ECALL_EXP
+	li t1, SOC_SCAUSE_U_CALL_EXP
 	beq t0, t1, is_user_syscall
 #endif /* CONFIG_USERSPACE */
 
@@ -326,6 +326,7 @@ is_kernel_syscall:
 
 #ifdef CONFIG_PMP_STACK_GUARD
 	/* Re-activate PMP for m-mode */
+	// TODO
 	li t1, MSTATUS_MPP
 	csrc mstatus, t1
 	li t1, MSTATUS_MPRV
@@ -473,7 +474,7 @@ is_interrupt:
 	 * PMP for kernel mode stack guard.
 	 */
 	lr t0, __z_arch_esf_t_mstatus_OFFSET(sp)
-	li t1, MSTATUS_MPP
+	li t1, SSTATUS_SPP
 	and t0, t0, t1
 	bnez t0, 1f
 	lr a0, ___cpu_t_current_OFFSET(s0)
@@ -481,6 +482,7 @@ is_interrupt:
 	j 2f
 #endif /* CONFIG_USERSPACE */
 1:	/* Re-activate PMP for m-mode */
+	// TODO
 	li t1, MSTATUS_MPP
 	csrc mstatus, t1
 	li t1, MSTATUS_MPRV
@@ -512,8 +514,8 @@ on_irq_stack:
 #endif
 
 	/* Get IRQ causing interrupt */
-	csrr a0, mcause
-	li t0, SOC_MCAUSE_EXP_MASK
+	csrr a0, scause
+	li t0, SOC_SCAUSE_EXP_MASK
 	and a0, a0, t0
 
 	/*

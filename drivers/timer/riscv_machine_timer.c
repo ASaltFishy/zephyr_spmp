@@ -12,7 +12,6 @@
 #include <zephyr/sys_clock.h>
 #include <zephyr/spinlock.h>
 #include <zephyr/irq.h>
-#include <zephyr/sbi.h>
 
 /* andestech,machine-timer */
 #if DT_HAS_COMPAT_STATUS_OKAY(andestech_machine_timer)
@@ -58,6 +57,8 @@
 #define TIMER_IRQN	DT_INST_IRQN(0)
 #endif
 
+#define SUPERVISOR_TIMER_IRQN 5
+
 #define CYC_PER_TICK ((uint32_t)((uint64_t) (sys_clock_hw_cycles_per_sec()			 \
 					     >> CONFIG_RISCV_MACHINE_TIMER_SYSTEM_CLOCK_DIVIDER) \
 				 / (uint64_t)CONFIG_SYS_CLOCK_TICKS_PER_SEC))
@@ -70,8 +71,10 @@
 static struct k_spinlock lock;
 static uint64_t last_count;
 #if defined(CONFIG_TEST)
-const int32_t z_sys_timer_irq_for_test = TIMER_IRQN;
+const int32_t z_sys_timer_irq_for_test = SUPERVISOR_TIMER_IRQN;
 #endif
+
+extern int sbi_set_timer(uint64_t time);
 
 // // each hart has a mtimecmp register, so we need to add offset
 // static uint64_t get_hart_mtimecmp(void)
@@ -83,10 +86,10 @@ static void set_mtimecmp(uint64_t time)
 {
 #ifdef CONFIG_64BIT
 	// *(volatile uint64_t *)get_hart_mtimecmp() = time;
-	SBI_TIMER(time);
+	sbi_set_timer(time);
 
 #else
-	SBI_TIMER(time);
+	sbi_set_timer(time);
 	// volatile uint32_t *r = (uint32_t *)(uint32_t)get_hart_mtimecmp();
 
 	/* Per spec, the RISC-V MTIME/MTIMECMP registers are 64 bit,
@@ -216,10 +219,10 @@ static int sys_clock_driver_init(const struct device *dev)
 {
 	ARG_UNUSED(dev);
 
-	IRQ_CONNECT(TIMER_IRQN, 0, timer_isr, NULL, 0);
+	IRQ_CONNECT(SUPERVISOR_TIMER_IRQN, 0, timer_isr, NULL, 0);
 	last_count = stime();
 	set_mtimecmp(last_count + CYC_PER_TICK);
-	irq_enable(TIMER_IRQN);
+	irq_enable(SUPERVISOR_TIMER_IRQN);
 	return 0;
 }
 
@@ -227,7 +230,7 @@ static int sys_clock_driver_init(const struct device *dev)
 void smp_timer_init(void)
 {
 	set_mtimecmp(last_count + CYC_PER_TICK);
-	irq_enable(TIMER_IRQN);
+	irq_enable(SUPERVISOR_TIMER_IRQN);
 }
 #endif
 

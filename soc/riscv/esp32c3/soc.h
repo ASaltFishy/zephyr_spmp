@@ -29,6 +29,7 @@
 #define SOC_MCAUSE_IRQ_MASK (1 << 31)
 /* Exception code Mask */
 #define SOC_MCAUSE_EXP_MASK 0x7FFFFFFF
+#define SOC_SCAUSE_EXP_MASK 0x7FFFFFFF
 
 #ifndef _ASMLANGUAGE
 

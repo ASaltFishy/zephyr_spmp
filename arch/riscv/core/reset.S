@@ -11,6 +11,10 @@
 #include <offsets.h>
 #include "asm_macros.inc"
 
+.globl my_global_variable
+my_global_variable:
+    .word -1   # initialized with-1
+
 /* exports */
 GTEXT(__initialize)
 GTEXT(__reset)
@@ -37,13 +41,22 @@ SECTION_FUNC(reset, __reset)
  * Remainder of asm-land initialization code before we can jump into
  * the C domain
  */
+ // hart id is stored in $a0 by default
 SECTION_FUNC(TEXT, __initialize)
-	li a0, 0
-	li t0, CONFIG_RV_BOOT_HART
-	beq a0, t0, boot_first_core
+
+	la t0, my_global_variable
+	lw t0, 0(t0)
+	bltz t0, boot_first_core
 	j boot_secondary_core
+	
+#	li a0, -1
+#	li t0, my_global_variable
+#	beq a0, t0, boot_first_core
+#	j boot_secondary_core
 
 boot_first_core:
+	la t0, my_global_variable
+	sw a0, 0(t0)
 
 #ifdef CONFIG_FPU
 	/*

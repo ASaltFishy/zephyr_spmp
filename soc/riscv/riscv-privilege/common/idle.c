@@ -30,7 +30,7 @@ static ALWAYS_INLINE void riscv_idle(unsigned int key)
  */
 void arch_cpu_idle(void)
 {
-	riscv_idle(MSTATUS_IEN);
+	riscv_idle(SSTATUS_IEN);
 }
 
 /**

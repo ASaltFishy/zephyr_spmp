@@ -20,7 +20,7 @@ void arch_cpu_idle(void)
 	/* curiously it arrives here with the interrupts masked
 	 * so umask it before wait for an event
 	 */
-	arch_irq_unlock(MSTATUS_IEN);
+	arch_irq_unlock(SSTATUS_IEN);
 
 	/* Wait for interrupt */
 	__asm__ volatile("wfi");

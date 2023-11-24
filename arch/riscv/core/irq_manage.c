@@ -11,17 +11,17 @@ LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
 FUNC_NORETURN void z_irq_spurious(const void *unused)
 {
-	unsigned long mcause;
+	unsigned long scause;
 
 	ARG_UNUSED(unused);
 
-	__asm__ volatile("csrr %0, mcause" : "=r" (mcause));
+	__asm__ volatile("csrr %0, scause" : "=r" (scause));
 
-	mcause &= SOC_MCAUSE_EXP_MASK;
+	scause &= SOC_SCAUSE_EXP_MASK;
 
-	LOG_ERR("Spurious interrupt detected! IRQ: %ld", mcause);
+	LOG_ERR("Spurious interrupt detected! IRQ: %ld", scause);
 #if defined(CONFIG_RISCV_HAS_PLIC)
-	if (mcause == RISCV_MACHINE_EXT_IRQ) {
+	if (scause == RISCV_SUPERVISOR_EXT_IRQ) {
 		LOG_ERR("PLIC interrupt line causing the IRQ: %d",
 			riscv_plic_get_irq());
 	}

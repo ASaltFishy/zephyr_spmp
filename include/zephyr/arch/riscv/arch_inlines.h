@@ -14,6 +14,9 @@
 
 static ALWAYS_INLINE uint32_t arch_proc_id(void)
 {
+	/*
+	In S-mode OS, we have no priviledge to read mhartid, but fortunately we won't use is API in OS.
+	*/
 	return csr_read(mhartid);
 }
 

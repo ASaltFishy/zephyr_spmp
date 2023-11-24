@@ -259,7 +259,7 @@ void arch_cpu_idle(void)
 	} else
 #endif
 	{
-		riscv_idle(CHIP_PLL_DOZE, MSTATUS_IEN);
+		riscv_idle(CHIP_PLL_DOZE, SSTATUS_IEN);
 	}
 }
 

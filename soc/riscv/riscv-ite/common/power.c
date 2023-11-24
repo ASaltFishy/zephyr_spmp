@@ -12,7 +12,7 @@
 static void ite_power_soc_deep_doze(void)
 {
 	/* Enter deep doze mode */
-	riscv_idle(CHIP_PLL_DEEP_DOZE, MSTATUS_IEN);
+	riscv_idle(CHIP_PLL_DEEP_DOZE, SSTATUS_IEN);
 }
 
 /* Invoke Low Power/System Off specific Tasks */
