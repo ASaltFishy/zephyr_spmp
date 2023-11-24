@@ -13,7 +13,6 @@
 #include <zephyr/sys_clock.h>
 #include <zephyr/spinlock.h>
 #include <zephyr/irq.h>
-#include <zephyr/sbi.h>
 
 #define DT_DRV_COMPAT riscv_machine_timer
 
@@ -26,6 +25,8 @@
 /* the unsigned long cast limits divisions to native CPU register width */
 #define cycle_diff_t   unsigned long
 #define CYCLE_DIFF_MAX (~(cycle_diff_t)0)
+
+#define SUPERVISOR_TIMER_IRQN 5
 
 /*
  * We have two constraints on the maximum number of cycles we can wait for.
@@ -58,8 +59,10 @@ static uint64_t last_ticks;
 static uint32_t last_elapsed;
 
 #if defined(CONFIG_TEST)
-const int32_t z_sys_timer_irq_for_test = TIMER_IRQN;
+const int32_t z_sys_timer_irq_for_test = SUPERVISOR_TIMER_IRQN;
 #endif
+
+extern int sbi_set_timer(uint64_t time);
 
 // // each hart has a mtimecmp register, so we need to add offset
 // static uintptr_t get_hart_mtimecmp(void)
@@ -71,7 +74,7 @@ static void set_mtimecmp(uint64_t time)
 {
 #ifdef CONFIG_64BIT
 	// *(volatile uint64_t *)get_hart_mtimecmp() = time;
-	SBI_TIMER(time);
+	sbi_set_timer(time);
 
 #else
 	SBI_TIMER(time);
@@ -190,11 +193,11 @@ uint64_t sys_clock_cycle_get_64(void)
 
 static int sys_clock_driver_init(void)
 {
-	IRQ_CONNECT(TIMER_IRQN, 0, timer_isr, NULL, 0);
+	IRQ_CONNECT(SUPERVISOR_TIMER_IRQN, 0, timer_isr, NULL, 0);
 	last_ticks = stime() / CYC_PER_TICK;
 	last_count = last_ticks * CYC_PER_TICK;
 	set_mtimecmp(last_count + CYC_PER_TICK);
-	irq_enable(TIMER_IRQN);
+	irq_enable(SUPERVISOR_TIMER_IRQN);
 	return 0;
 }
 
@@ -202,7 +205,7 @@ static int sys_clock_driver_init(void)
 void smp_timer_init(void)
 {
 	set_mtimecmp(last_count + CYC_PER_TICK);
-	irq_enable(TIMER_IRQN);
+	irq_enable(SUPERVISOR_TIMER_IRQN);
 }
 #endif
 

@@ -12,7 +12,7 @@
 #include <zephyr/arch/riscv/irq.h>
 #include <zephyr/drivers/pm_cpu_ops.h>
 #include <zephyr/platform/hooks.h>
-
+#include <zephyr/arch/riscv/sbi.h>
 volatile struct {
 	arch_cpustart_t fn;
 	void *arg;
@@ -34,18 +34,12 @@ void arch_cpu_start(int cpu_num, k_thread_stack_t *stack, int sz,
 	riscv_cpu_init[cpu_num].fn = fn;
 	riscv_cpu_init[cpu_num].arg = arg;
 
-	riscv_cpu_sp = K_KERNEL_STACK_BUFFER(stack) + sz;
-	riscv_cpu_boot_flag = 0U;
+	riscv_cpu_sp = Z_KERNEL_STACK_BUFFER(stack) + sz;
+	riscv_cpu_wake_flag = _kernel.cpus[cpu_num].arch.hartid;
+	sbi_hsm_hart_start(_kernel.cpus[cpu_num].arch.hartid,(unsigned long)__start);
 
-#ifdef CONFIG_PM_CPU_OPS
-	if (pm_cpu_on(cpu_num, (uintptr_t)&__start)) {
-		printk("Failed to boot secondary CPU %d\n", cpu_num);
-		return;
-	}
-#endif
-
-	while (riscv_cpu_boot_flag == 0U) {
-		riscv_cpu_wake_flag = _kernel.cpus[cpu_num].arch.hartid;
+	while (riscv_cpu_wake_flag != 0U) {
+		;
 	}
 }
 
@@ -59,7 +53,7 @@ void arch_secondary_cpu_init(int hartid)
 			cpu_num = i;
 		}
 	}
-	csr_write(mscratch, &_kernel.cpus[cpu_num]);
+	csr_write(sscratch, &_kernel.cpus[cpu_num]);
 #ifdef CONFIG_SMP
 	_kernel.cpus[cpu_num].arch.online = true;
 #endif
@@ -73,11 +67,11 @@ void arch_secondary_cpu_init(int hartid)
 	z_riscv_pmp_init();
 #endif
 #ifdef CONFIG_SMP
-	irq_enable(RISCV_IRQ_MSOFT);
+	irq_enable(RISCV_IRQ_SSOFT);
 #endif /* CONFIG_SMP */
 #ifdef CONFIG_PLIC_IRQ_AFFINITY
 	/* Enable on secondary cores so that they can respond to PLIC */
-	irq_enable(RISCV_IRQ_MEXT);
+	irq_enable(RISCV_IRQ_SEXT);
 #endif /* CONFIG_PLIC_IRQ_AFFINITY */
 #ifdef CONFIG_SOC_PER_CORE_INIT_HOOK
 	soc_per_core_init_hook();

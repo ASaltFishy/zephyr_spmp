@@ -13,11 +13,12 @@
 
 static inline unsigned long fpu_state(void)
 {
-	return csr_read(mstatus) & MSTATUS_FS;
+	return csr_read(sstatus) & SSTATUS_FS;
 }
 
 static inline bool fpu_is_off(void)
 {
+	// TODO
 	return fpu_state() == MSTATUS_FS_OFF;
 }
 
@@ -25,7 +26,7 @@ static inline bool fpu_is_clean(void)
 {
 	unsigned long state = fpu_state();
 
-	return state == MSTATUS_FS_INIT || state == MSTATUS_FS_CLEAN;
+	return state == SSTATUS_FS_INIT || state == SSTATUS_FS_CLEAN;
 }
 
 static inline bool fpu_is_dirty(void)
@@ -270,7 +271,7 @@ static void exception_context(const void *arg)
 	}
 
 	/* Simulate a user syscall environment by having IRQs enabled */
-	csr_set(mstatus, MSTATUS_IEN);
+	csr_set(sstatus, SSTATUS_IEN);
 
 	/* make sure the FPU is still off */
 	zassert_true(fpu_is_off());
@@ -282,7 +283,7 @@ static void exception_context(const void *arg)
 	zassert_true(fpu_is_dirty());
 
 	/* IRQs should have been disabled on us to prevent recursive FPU usage */
-	zassert_true((csr_read(mstatus) & MSTATUS_IEN) == 0, "IRQs should be disabled");
+	zassert_true((csr_read(sstatus) & SSTATUS_IEN) == 0, "IRQs should be disabled");
 }
 
 ZTEST(riscv_fpu_sharing, test_thread_vs_exc_interaction)
@@ -294,11 +295,11 @@ ZTEST(riscv_fpu_sharing, test_thread_vs_exc_interaction)
 	zassert_true(fpu_is_dirty());
 
 	/* We're not in exception so IRQs should be enabled. */
-	zassert_true((csr_read(mstatus) & MSTATUS_IEN) != 0, "IRQs should be enabled");
+	zassert_true((csr_read(sstatus) & SSTATUS_IEN) != 0, "IRQs should be enabled");
 
 	/* Exceptions with no FPU usage shouldn't affect our state. */
 	irq_offload(exception_context, NO_FPU);
-	zassert_true((csr_read(mstatus) & MSTATUS_IEN) != 0, "IRQs should be enabled");
+	zassert_true((csr_read(sstatus) & SSTATUS_IEN) != 0, "IRQs should be enabled");
 	zassert_true(fpu_is_dirty());
 	__asm__ volatile ("fcvt.w.s %0, fa1" : "=r" (val));
 	zassert_true(val == 654, "got %d instead", val);
@@ -311,7 +312,7 @@ ZTEST(riscv_fpu_sharing, test_thread_vs_exc_interaction)
 	 * upon leaving the exception, but with a clean state at that point.
 	 */
 	irq_offload(exception_context, WITH_FPU);
-	zassert_true((csr_read(mstatus) & MSTATUS_IEN) != 0, "IRQs should be enabled");
+	zassert_true((csr_read(sstatus) & SSTATUS_IEN) != 0, "IRQs should be enabled");
 	zassert_true(fpu_is_clean());
 	__asm__ volatile ("fcvt.w.s %0, fa1" : "=r" (val));
 	zassert_true(val == 654, "got %d instead", val);
@@ -322,7 +323,7 @@ ZTEST(riscv_fpu_sharing, test_thread_vs_exc_interaction)
 	 * This means our FPU context should not be preemptively restored.
 	 */
 	irq_offload(exception_context, WITH_FPU);
-	zassert_true((csr_read(mstatus) & MSTATUS_IEN) != 0, "IRQs should be enabled");
+	zassert_true((csr_read(sstatus) & SSTATUS_IEN) != 0, "IRQs should be enabled");
 	zassert_true(fpu_is_off());
 
 	/* Make sure we still have proper context when accessing the FPU. */

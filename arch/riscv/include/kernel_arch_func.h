@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 #ifndef _ASMLANGUAGE
+extern int my_global_variable;
 
 static ALWAYS_INLINE void arch_kernel_init(void)
 {
@@ -35,7 +36,8 @@ static ALWAYS_INLINE void arch_kernel_init(void)
 	csr_write(sscratch, &_kernel.cpus[0]);
 #endif
 #ifdef CONFIG_SMP
-	_kernel.cpus[0].arch.hartid = csr_read(mhartid);
+	// _kernel.cpus[0].arch.hartid = csr_read(mhartid);
+	_kernel.cpus[0].arch.hartid = my_global_variable;
 	_kernel.cpus[0].arch.online = true;
 #endif
 #if ((CONFIG_MP_MAX_NUM_CPUS) > 1)

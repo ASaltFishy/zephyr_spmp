@@ -200,11 +200,17 @@ SECTION_FUNC(exception.entry, _isr_wrapper)
 
 #ifdef CONFIG_CLIC_SUPPORT_INTERRUPT_LEVEL
 	/* Save mcause register */
-	csrr t0, mcause
+	csrr t0, scause
 	sr t0, __struct_arch_esf_mcause_OFFSET(sp)
 #endif /* CONFIG_CLIC_SUPPORT_INTERRUPT_LEVEL */
 
-	/* Save MEPC register */
+#ifdef CONFIG_CLIC_SUPPORT_INTERRUPT_LEVEL
+	/* Save mcause register */
+	csrr t0, scause
+	sr t0, __struct_arch_esf_mcause_OFFSET(sp)
+#endif /* CONFIG_CLIC_SUPPORT_INTERRUPT_LEVEL */
+
+	/* Save SEPC register */
 	csrr t0, sepc
 	sr t0, __struct_arch_esf_mepc_OFFSET(sp)
 
@@ -335,8 +341,8 @@ no_fp:	/* increment _current->arch.exception_depth */
 	jal ra, __soc_is_irq
 	bnez a0, is_interrupt
 #else
-	csrr t0, mcause
-	srli t0, t0, RISCV_MCAUSE_IRQ_POS
+	csrr t0, scause
+	srli t0, t0, RISCV_SCAUSE_IRQ_POS
 	bnez t0, is_interrupt
 #endif
 
@@ -353,7 +359,7 @@ no_fp:	/* increment _current->arch.exception_depth */
 	 * If mcause == RISCV_EXC_ECALLM, handle system call from
 	 * kernel thread.
 	 */
-	li t1, RISCV_EXC_ECALLM
+	li t1, RISCV_EXC_ECALLS
 	beq t0, t1, is_kernel_syscall
 
 #ifdef CONFIG_USERSPACE
@@ -407,6 +413,7 @@ is_kernel_syscall:
 
 #if defined(CONFIG_PMP_STACK_GUARD) && defined(CONFIG_MULTITHREADING)
 	/* Re-activate PMP for m-mode */
+	// TODO
 	li t1, MSTATUS_MPP
 	csrc mstatus, t1
 	li t1, MSTATUS_MPRV
@@ -593,7 +600,7 @@ is_interrupt:
 	 * PMP for kernel mode stack guard.
 	 */
 	lr t0, __struct_arch_esf_mstatus_OFFSET(sp)
-	li t1, MSTATUS_MPP
+	li t1, SSTATUS_SPP
 	and t0, t0, t1
 	bnez t0, 1f
 	lr a0, ___cpu_t_current_OFFSET(s0)
@@ -601,6 +608,7 @@ is_interrupt:
 	j 2f
 #endif /* CONFIG_USERSPACE */
 1:	/* Re-activate PMP for m-mode */
+	// TODO
 	li t1, MSTATUS_MPP
 	csrc mstatus, t1
 	li t1, MSTATUS_MPRV
@@ -636,8 +644,8 @@ on_irq_stack:
 #endif
 
 	/* Get IRQ causing interrupt */
-	csrr a0, mcause
-	li t0, CONFIG_RISCV_MCAUSE_EXCEPTION_MASK
+	csrr a0, scause
+	li t0, CONFIG_RISCV_SCAUSE_EXCEPTION_MASK
 	and a0, a0, t0
 
 	/*
