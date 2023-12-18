@@ -1,7 +1,7 @@
 target remote localhost:1234
 dir /home/lrc/zephyr-spmp
 # file /home/lrc/zephyr-spmp/opensbi/build/platform/generic/firmware/fw_jump.elf
-file /home/lrc/zephyr-spmp/samples/hello_world/build/zephyr/zephyr.elf
+file /home/lrc/zephyr-spmp/samples/userspace/hello_world_user/build/zephyr/zephyr.elf
 
 b _start
 b z_thread_entry
