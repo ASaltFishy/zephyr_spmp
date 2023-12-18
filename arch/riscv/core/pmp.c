@@ -490,7 +490,7 @@ void z_riscv_pmp_stackguard_prepare(struct k_thread *thread)
 		stack_bottom = thread->stack_info.start - K_THREAD_STACK_RESERVED;
 	}
 #endif
-	set_pmp_entry(&index, SPMP_NONE,
+	set_pmp_entry(&index, SPMP_W | SPMP_R | SPMP_S,
 		      stack_bottom, Z_RISCV_STACK_GUARD_SIZE,
 		      PMP_M_MODE(thread));
 	set_pmp_mprv_catchall(&index, PMP_M_MODE(thread));
