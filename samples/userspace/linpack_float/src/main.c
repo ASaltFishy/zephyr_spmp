@@ -19,6 +19,9 @@
 struct k_thread user_thread;
 K_THREAD_STACK_DEFINE(user_stack, USER_STACKSIZE);
 
+struct k_thread user_thread2;
+K_THREAD_STACK_DEFINE(user_stack2, USER_STACKSIZE);
+
 
 void linpack(int n) {
     int i, j;
@@ -91,6 +94,10 @@ void main(void)
     k_mem_domain_add_partition(&k_mem_domain_default, &z_malloc_partition);
     // k_mem_domain_add_partition(&k_mem_domain_default, &z_libc_partition);
 	k_thread_create(&user_thread, user_stack, USER_STACKSIZE,
+			user_function, NULL, NULL, NULL,
+			-1, K_USER, K_MSEC(0));
+    
+    k_thread_create(&user_thread2, user_stack2, USER_STACKSIZE,
 			user_function, NULL, NULL, NULL,
 			-1, K_USER, K_MSEC(0));
 }

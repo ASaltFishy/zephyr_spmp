@@ -13,6 +13,7 @@
 #include <zephyr/sys_clock.h>
 #include <zephyr/spinlock.h>
 #include <zephyr/irq.h>
+#include <zephyr/arch/riscv/sbi.h>
 
 #define DT_DRV_COMPAT riscv_machine_timer
 
