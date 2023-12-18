@@ -12,6 +12,7 @@
 #include <zephyr/sys_clock.h>
 #include <zephyr/spinlock.h>
 #include <zephyr/irq.h>
+#include <zephyr/arch/riscv/sbi.h>
 
 /* andestech,machine-timer */
 #if DT_HAS_COMPAT_STATUS_OKAY(andestech_machine_timer)

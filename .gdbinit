@@ -1,10 +1,11 @@
 target remote localhost:1234
 dir /home/lrc/zephyr-spmp
 # file /home/lrc/zephyr-spmp/opensbi/build/platform/generic/firmware/fw_jump.elf
-file /home/lrc/zephyr-spmp/samples/synchronization/build/zephyr/zephyr.elf
+file /home/lrc/zephyr-spmp/samples/hello_world/build/zephyr/zephyr.elf
 
-# b _start
-
+b _start
+b z_riscv_pmp_init
+b set_pmp_entry
 # b *0x80200000
 # b z_cstart
 # b __initialize
@@ -33,6 +34,8 @@ b sbi_ecall_hsm_handler
 
 b _isr_wrapper
 # b arch_irq_enable
+b z_riscv_thread_start
+
 
 
 # b sbi_ecall_handler
@@ -58,7 +61,7 @@ b threadB
 # b check_reschedule
 # b arch_cpu_idle
 
-b /home/lrc/zephyr-spmp/samples/synchronization/src/main.c:50
+b main
 
 b  z_riscv_fatal_error
 layout src

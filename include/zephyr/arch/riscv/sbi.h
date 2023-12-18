@@ -8,6 +8,8 @@
  * This header contains the RISCV specific sbi interface which can be invoked for S/U mode to communicate with M mode.
  */
 
+#include <stdint.h>
+
 /* SBI Extension IDs */
 #define SBI_EXT_0_1_SET_TIMER			0x0
 #define SBI_EXT_0_1_CONSOLE_PUTCHAR		0x1
@@ -108,61 +110,10 @@ struct sbiret {
 struct sbiret sbi_ecall(int ext, int fid, unsigned long arg0,
 			unsigned long arg1, unsigned long arg2,
 			unsigned long arg3, unsigned long arg4,
-			unsigned long arg5)
-{
-	struct sbiret ret;
-
-	register unsigned long a0 __asm__ ("a0") = (unsigned long)(arg0);
-	register unsigned long a1 __asm__ ("a1") = (unsigned long)(arg1);
-	register unsigned long a2 __asm__ ("a2") = (unsigned long)(arg2);
-	register unsigned long a3 __asm__ ("a3") = (unsigned long)(arg3);
-	register unsigned long a4 __asm__ ("a4") = (unsigned long)(arg4);
-	register unsigned long a5 __asm__ ("a5") = (unsigned long)(arg5);
-	register unsigned long a6 __asm__ ("a6") = (unsigned long)(fid);
-	register unsigned long a7 __asm__ ("a7") = (unsigned long)(ext);
-	__asm__ volatile ("ecall"
-		      : "+r" (a0), "+r" (a1)
-		      : "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6), "r" (a7)
-		      : "memory");
-	ret.error = a0;
-	ret.value = a1;
-
-	return ret;
-}
-
-int sbi_hsm_hart_start(unsigned long long hartid, unsigned long long saddr)
-{
-	struct sbiret ret;
-
-	ret = sbi_ecall(SBI_EXT_HSM, SBI_EXT_HSM_HART_START,
-			hartid, saddr, 0, 0, 0, 0);
-	if (ret.error)
-		return ret.error;
-	else
-		return 0;
-}
-
-int sbi_send_ipi(unsigned long long hart_mask, unsigned long long hart_mask_base)
-{
-	struct sbiret ret;
-
-	ret = sbi_ecall(SBI_EXT_IPI, SBI_EXT_IPI_SEND_IPI, hart_mask,
-						hart_mask_base, 0, 0, 0, 0);
-	if (ret.error)
-		return ret.error;
-	else
-		return 0;
-}
-
-int sbi_set_timer(uint64_t time){
-	struct sbiret ret;
-
-	ret = sbi_ecall(SBI_EXT_TIME_SET_TIMER, 0 ,time,0, 0, 0, 0, 0);
-	if (ret.error)
-		return ret.error;
-	else
-		return 0;
-}
+			unsigned long arg5);
+int sbi_hsm_hart_start(unsigned long long hartid, unsigned long long saddr);
+int sbi_send_ipi(unsigned long long hart_mask, unsigned long long hart_mask_base);
+int sbi_set_timer(uint64_t time);
 
 #define SBI_SET_TIMER 0
 #define SBI_CONSOLE_PUTCHAR 1
