@@ -327,10 +327,10 @@ is_kernel_syscall:
 #ifdef CONFIG_PMP_STACK_GUARD
 	/* Re-activate PMP for m-mode */
 	// TODO
-	li t1, MSTATUS_MPP
-	csrc mstatus, t1
-	li t1, MSTATUS_MPRV
-	csrs mstatus, t1
+	# li t1, MSTATUS_MPP
+	# csrc mstatus, t1
+	# li t1, MSTATUS_MPRV
+	# csrs mstatus, t1
 #endif
 
 	/* Determine what to do. Operation code is in t0. */
@@ -483,10 +483,10 @@ is_interrupt:
 #endif /* CONFIG_USERSPACE */
 1:	/* Re-activate PMP for m-mode */
 	// TODO
-	li t1, MSTATUS_MPP
-	csrc mstatus, t1
-	li t1, MSTATUS_MPRV
-	csrs mstatus, t1
+	# li t1, MSTATUS_MPP
+	# csrc mstatus, t1
+	# li t1, MSTATUS_MPRV
+	# csrs mstatus, t1
 2:
 #endif
 

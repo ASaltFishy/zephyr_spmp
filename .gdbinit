@@ -4,8 +4,9 @@ dir /home/lrc/zephyr-spmp
 file /home/lrc/zephyr-spmp/samples/hello_world/build/zephyr/zephyr.elf
 
 b _start
-b z_riscv_pmp_init
-b set_pmp_entry
+b z_thread_entry
+# b z_riscv_pmp_init
+# b set_pmp_entry
 # b *0x80200000
 # b z_cstart
 # b __initialize
