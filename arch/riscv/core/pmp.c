@@ -319,7 +319,7 @@ static void write_pmp_entries(unsigned int start, unsigned int end,
  * @brief Abstract the last 3 arguments to set_pmp_entry() and
  *        write_pmp_entries( for m-mode.
  */
-#define PMP_M_MODE(thread) \
+#define PMP_S_MODE(thread) \
 	thread->arch.m_mode_pmpaddr_regs, \
 	thread->arch.m_mode_pmpcfg_regs, \
 	ARRAY_SIZE(thread->arch.m_mode_pmpaddr_regs)
@@ -377,7 +377,7 @@ void z_riscv_pmp_init(void)
 	 * addresses inaccessible. This will never change so we do it here
 	 * and lock it too.
 	 */
-	set_pmp_entry(&index, SPMP_NONE | PMP_L,
+	set_pmp_entry(&index, SPMP_NONE,
 		      (uintptr_t)z_interrupt_stacks[_current_cpu->id],
 		      Z_RISCV_STACK_GUARD_SIZE,
 		      pmp_addr, pmp_cfg, ARRAY_SIZE(pmp_addr));
@@ -478,7 +478,7 @@ static inline unsigned int z_riscv_pmp_thread_init(unsigned long *pmp_addr,
  */
 void z_riscv_pmp_stackguard_prepare(struct k_thread *thread)
 {
-	unsigned int index = z_riscv_pmp_thread_init(PMP_M_MODE(thread));
+	unsigned int index = z_riscv_pmp_thread_init(PMP_S_MODE(thread));
 	uintptr_t stack_bottom;
 
 	/* make the bottom addresses of our stack inaccessible */
@@ -490,7 +490,7 @@ void z_riscv_pmp_stackguard_prepare(struct k_thread *thread)
 		stack_bottom = thread->stack_info.start - K_THREAD_STACK_RESERVED;
 	}
 #endif
-	set_pmp_entry(&index, PMP_NONE,
+	set_pmp_entry(&index, SPMP_NONE,
 		      stack_bottom, Z_RISCV_STACK_GUARD_SIZE,
 		      PMP_M_MODE(thread));
 	set_pmp_mprv_catchall(&index, PMP_M_MODE(thread));
@@ -513,19 +513,52 @@ void z_riscv_pmp_stackguard_enable(struct k_thread *thread)
 	 * While at it, also clear MSTATUS_MPP as it must be cleared for
 	 * MSTATUS_MPRV to be effective later.
 	 */
-	csr_clear(mstatus, MSTATUS_MPRV | MSTATUS_MPP);
+	// csr_clear(mstatus, MSTATUS_MPRV | MSTATUS_MPP);
 
 	/* Write our m-mode MPP entries */
 	write_pmp_entries(global_pmp_end_index, thread->arch.m_mode_pmp_end_index,
 			  false /* no need to clear to the end */,
-			  PMP_M_MODE(thread));
+			  PMP_S_MODE(thread));
 
 	if (PMP_DEBUG_DUMP) {
 		dump_pmp_regs("m-mode register dump");
 	}
 
 	/* Activate our non-locked PMP entries in m-mode */
-	csr_set(mstatus, MSTATUS_MPRV);
+	// csr_set(mstatus, MSTATUS_MPRV);
+}
+
+#endif /* CONFIG_MULTITHREADING */
+
+/**
+ * @brief Remove PMP stackguard content to actual PMP registers
+ */
+void z_riscv_pmp_stackguard_disable(void)
+{
+
+	unsigned long pmp_addr[PMP_M_MODE_SLOTS];
+	unsigned long pmp_cfg[PMP_M_MODE_SLOTS / sizeof(unsigned long)];
+	unsigned int index = global_pmp_end_index;
+
+	/* Retrieve the pmpaddr value matching the last global PMP slot. */
+	pmp_addr[global_pmp_end_index - 1] = global_pmp_last_addr;
+
+	/* Disable (non-locked) PMP entries for m-mode while we update them. */
+	csr_clear(mstatus, MSTATUS_MPRV);
+
+	/*
+	 * Set a temporary default "catch all" PMP entry for MPRV to work,
+	 * except for the global locked entries.
+	 */
+	set_pmp_mprv_catchall(&index, pmp_addr, pmp_cfg, ARRAY_SIZE(pmp_addr));
+
+	/* Write "catch all" entry and clear unlocked entries to PMP regs. */
+	write_pmp_entries(global_pmp_end_index, index,
+			  true, pmp_addr, pmp_cfg, ARRAY_SIZE(pmp_addr));
+
+	if (PMP_DEBUG_DUMP) {
+		dump_pmp_regs("catch all register dump");
+	}
 }
 
 #endif /* CONFIG_MULTITHREADING */
@@ -668,7 +701,7 @@ void z_riscv_pmp_usermode_enable(struct k_thread *thread)
 
 #ifdef CONFIG_PMP_STACK_GUARD
 	/* Make sure m-mode PMP usage is disabled before we reprogram it */
-	csr_clear(mstatus, MSTATUS_MPRV);
+	// csr_clear(mstatus, MSTATUS_MPRV);
 #endif
 
 	/* Write our u-mode MPP entries */
@@ -728,7 +761,7 @@ int arch_mem_domain_partition_add(struct k_mem_domain *domain,
 int arch_mem_domain_partition_remove(struct k_mem_domain *domain,
 				     uint32_t partition_id)
 {
-	/* Force resynchronization for every thread using this domain */
+	/* Force resynchronization for every thread usinginit this domain */
 	domain->arch.pmp_update_nr += 1;
 	return 0;
 }
