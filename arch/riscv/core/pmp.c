@@ -350,7 +350,7 @@ static unsigned int global_pmp_end_index;
 void z_riscv_pmp_init(void)
 {
 	unsigned long pmp_addr[CONFIG_PMP_SLOTS];
-	unsigned long pmp_cfg[CONFIG_PMP_SLOTS / PMPCFG_STRIDE];
+	unsigned long pmp_cfg[1];
 	unsigned int index = 0;
 
 	/* The read-only area is always there for every mode, in spmp it's shared read-only */
