@@ -307,7 +307,7 @@ static unsigned int global_pmp_end_index;
  */
 void z_riscv_pmp_init(void)
 {
-	unsigned long pmp_addr[4];
+	unsigned long pmp_addr[CONFIG_PMP_SLOTS];
 	unsigned long pmp_cfg[1];
 	unsigned int index = 0;
 

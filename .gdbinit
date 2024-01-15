@@ -1,12 +1,12 @@
 target remote localhost:1234
 dir /home/lrc/zephyr-spmp
 # file /home/lrc/zephyr-spmp/opensbi/build/platform/generic/firmware/fw_jump.elf
-file /home/lrc/zephyr-spmp/samples/userspace/hello_world_user/build/zephyr/zephyr.elf
+file /home/lrc/zephyr-spmp/samples/synchronization/build/zephyr/zephyr.elf
 
 b _start
 b z_thread_entry
-# b z_riscv_pmp_init
-# b set_pmp_entry
+b z_riscv_pmp_init
+b set_pmp_entry
 # b *0x80200000
 # b z_cstart
 # b __initialize
