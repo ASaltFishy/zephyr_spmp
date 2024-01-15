@@ -502,6 +502,11 @@ enum net_verdict net_ipv6_input(struct net_pkt *pkt, bool is_loopback)
 			NET_DBG("DROP: invalid scope multicast packet");
 			goto drop;
 		}
+
+		if (net_ipv6_is_my_addr((struct in6_addr *)hdr->src)) {
+			NET_DBG("DROP: src addr is %s", "mine");
+			goto drop;
+		}
 	}
 
 	/* Reconstruct TC field. */
@@ -519,6 +524,11 @@ enum net_verdict net_ipv6_input(struct net_pkt *pkt, bool is_loopback)
 	net_pkt_set_ip_hdr_len(pkt, sizeof(struct net_ipv6_hdr));
 	net_pkt_set_ipv6_hop_limit(pkt, NET_IPV6_HDR(pkt)->hop_limit);
 	net_pkt_set_family(pkt, PF_INET6);
+
+	if (!net_pkt_filter_ip_recv_ok(pkt)) {
+		/* drop the packet */
+		return NET_DROP;
+	}
 
 	if (IS_ENABLED(CONFIG_NET_ROUTE_MCAST) &&
 		net_ipv6_is_addr_mcast((struct in6_addr *)hdr->dst)) {

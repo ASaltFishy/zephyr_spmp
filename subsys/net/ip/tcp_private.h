@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018-2019 Intel Corporation
+ * Copyright (c) 2023 Arm Limited (or its affiliates). All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -45,7 +46,7 @@
 #define tcp_free(_ptr) k_free(_ptr)
 #endif
 
-#define TCP_PKT_ALLOC_TIMEOUT K_MSEC(100)
+#define TCP_PKT_ALLOC_TIMEOUT K_MSEC(CONFIG_NET_TCP_PKT_ALLOC_TIMEOUT)
 
 #if defined(CONFIG_NET_TEST_PROTOCOL)
 #define tcp_pkt_clone(_pkt) tp_pkt_clone(_pkt, tp_basename(__FILE__), __LINE__)
@@ -97,6 +98,23 @@
 	_pkt;								\
 })
 
+#define tcp_pkt_alloc_no_conn(_iface, _family, _len)			\
+({									\
+	struct net_pkt *_pkt;						\
+									\
+	if ((_len) > 0) {						\
+		_pkt = net_pkt_alloc_with_buffer(			\
+			(_iface), (_len), (_family),			\
+			IPPROTO_TCP,					\
+			TCP_PKT_ALLOC_TIMEOUT);				\
+	} else {							\
+		_pkt = net_pkt_alloc(TCP_PKT_ALLOC_TIMEOUT);		\
+	}								\
+									\
+	tp_pkt_alloc(_pkt, tp_basename(__FILE__), __LINE__);		\
+									\
+	_pkt;								\
+})
 
 #if defined(CONFIG_NET_TEST_PROTOCOL)
 #define conn_seq(_conn, _req) \
@@ -222,6 +240,15 @@ struct tcp_options {
 	bool wnd_found : 1;
 };
 
+#ifdef CONFIG_NET_TCP_CONGESTION_AVOIDANCE
+
+struct tcp_collision_avoidance_reno {
+	uint16_t cwnd;
+	uint16_t ssthresh;
+	uint16_t pending_fast_retransmit_bytes;
+};
+#endif
+
 struct tcp { /* TCP connection */
 	sys_snode_t next;
 	struct net_context *context;
@@ -234,6 +261,7 @@ struct tcp { /* TCP connection */
 		net_tcp_accept_cb_t accept_cb;
 		struct tcp *accepted_conn;
 	};
+	net_context_connect_cb_t connect_cb;
 	struct k_mutex lock;
 	struct k_sem connect_sem; /* semaphore for blocking connect */
 	struct k_sem tx_sem; /* Semaphore indicating if transfers are blocked . */
@@ -267,9 +295,13 @@ struct tcp { /* TCP connection */
 	uint32_t ack;
 	uint16_t recv_win_max;
 	uint16_t recv_win;
+	uint16_t send_win_max;
 	uint16_t send_win;
 #ifdef CONFIG_NET_TCP_RANDOMIZED_RTO
 	uint16_t rto;
+#endif
+#ifdef CONFIG_NET_TCP_CONGESTION_AVOIDANCE
+	struct tcp_collision_avoidance_reno ca;
 #endif
 	uint8_t send_data_retries;
 #ifdef CONFIG_NET_TCP_FAST_RETRANSMIT

@@ -33,9 +33,9 @@ target hardware in the early phases of development.
 Types of POSIX arch based boards
 ================================
 
-Today there are two types of POSIX boards: The :ref:`native_posix<native_posix>`
-board and the :ref:`bsim boards<bsim boards>`.
-While they share the main objectives and principles, the first is intended as
+Today there are two types of POSIX boards: The native boards, :ref:`native_posix<native_posix>`
+and :ref:`native_sim<native_sim>`, and the :ref:`bsim boards<bsim boards>`.
+While they share the main objectives and principles, the first are intended as
 a HW agnostic test platform which in some cases utilizes the host OS
 peripherals, while the second intend to simulate a particular HW platform,
 with focus on their radio (e.g. BT LE) and utilize the `BabbleSim`_ physical layer
@@ -49,13 +49,17 @@ simulation and framework, while being fully decoupled of the host.
 Host system dependencies
 ========================
 
-This port is designed to run in POSIX compatible operating systems,
-but it has only been tested on Linux.
+This port is designed and tested to run in Linux.
 
 .. note::
 
    You must have the 32-bit C library installed in your system
    (in Ubuntu 16.04 install the gcc-multilib package)
+
+.. note::
+
+   The POSIX architecture is known to **not** work on macOS due to
+   fundamental differences between macOS and other typical Unixes.
 
 .. note::
 

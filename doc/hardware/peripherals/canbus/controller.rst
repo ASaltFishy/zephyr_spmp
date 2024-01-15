@@ -194,7 +194,7 @@ occurred. It does not block until the message is sent like the example above.
           frame.data[0] = 1;
           frame.data[1] = 2;
 
-          return can_send(can_dev, &frame, K_FOREVER, tx_irq_callback, "Sender 1");
+          return can_send(can_dev, &frame, K_FOREVER, tx_callback, "Sender 1");
   }
 
 Receiving
@@ -331,9 +331,9 @@ which adds some computation and memory overhead.
 Samples
 *******
 
-We have two ready-to-build samples demonstrating use of the Zephyr CAN API
-:ref:`Zephyr CAN counter sample <can-counter-sample>` and
-:ref:`SocketCAN sample <socket-can-sample>`.
+We have two ready-to-build samples demonstrating use of the Zephyr CAN API:
+:zephyr:code-sample:`Zephyr CAN counter sample <can-counter>` and
+:zephyr:code-sample:`SocketCAN sample <socket-can>`.
 
 
 CAN Controller API Reference

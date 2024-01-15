@@ -323,7 +323,12 @@ static void test_finalize(void)
 {
 	if (IS_ENABLED(CONFIG_MULTITHREADING)) {
 		k_thread_abort(&ztest_thread);
+		if (k_is_in_isr()) {
+			return;
+		}
+
 		k_thread_abort(k_current_get());
+		CODE_UNREACHABLE;
 	}
 }
 
@@ -523,7 +528,7 @@ int main(void)
 	return test_status;
 }
 #else
-void main(void)
+int main(void)
 {
 #ifdef CONFIG_USERSPACE
 	int ret;
@@ -592,5 +597,6 @@ void main(void)
 	}
 	irq_unlock(key);
 #endif
+	return 0;
 }
 #endif

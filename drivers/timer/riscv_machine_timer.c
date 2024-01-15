@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2018 Intel Corporation
+ * Copyright (c) 2018-2023 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <limits.h>
 
-#include <zephyr/device.h>
+#include <zephyr/init.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/timer/system_timer.h>
 #include <zephyr/sys_clock.h>
@@ -56,21 +56,39 @@
 #define MTIME_REG	(DT_INST_REG_ADDR(0) + 0x110)
 #define MTIMECMP_REG	(DT_INST_REG_ADDR(0) + 0x118)
 #define TIMER_IRQN	DT_INST_IRQN(0)
+/* niosv-machine-timer */
+#elif DT_HAS_COMPAT_STATUS_OKAY(niosv_machine_timer)
+#define DT_DRV_COMPAT niosv_machine_timer
+
+#define MTIMECMP_REG	DT_INST_REG_ADDR(0)
+#define MTIME_REG	(DT_INST_REG_ADDR(0) + 8)
+#define TIMER_IRQN	DT_INST_IRQN(0)
+/* scr,machine-timer*/
+#elif DT_HAS_COMPAT_STATUS_OKAY(scr_machine_timer)
+#define DT_DRV_COMPAT scr_machine_timer
+#define MTIMER_HAS_DIVIDER
+
+#define MTIMEDIV_REG	(DT_INST_REG_ADDR_U64(0) + 4)
+#define MTIME_REG	(DT_INST_REG_ADDR_U64(0) + 8)
+#define MTIMECMP_REG	(DT_INST_REG_ADDR_U64(0) + 16)
+#define TIMER_IRQN	DT_INST_IRQN(0)
 #endif
 
 #define SUPERVISOR_TIMER_IRQN 5
 
-#define CYC_PER_TICK ((uint32_t)((uint64_t) (sys_clock_hw_cycles_per_sec()			 \
-					     >> CONFIG_RISCV_MACHINE_TIMER_SYSTEM_CLOCK_DIVIDER) \
-				 / (uint64_t)CONFIG_SYS_CLOCK_TICKS_PER_SEC))
-#define MAX_CYC INT_MAX
-#define MAX_TICKS ((MAX_CYC - CYC_PER_TICK) / CYC_PER_TICK)
-#define MIN_DELAY CONFIG_RISCV_MACHINE_TIMER_MIN_DELAY
+#define SUPERVISOR_TIMER_IRQN 5
 
-#define TICKLESS IS_ENABLED(CONFIG_TICKLESS_KERNEL)
+#define CYC_PER_TICK (uint32_t)(sys_clock_hw_cycles_per_sec() \
+				/ CONFIG_SYS_CLOCK_TICKS_PER_SEC)
+
+/* the unsigned long cast limits divisions to native CPU register width */
+#define cycle_diff_t unsigned long
 
 static struct k_spinlock lock;
 static uint64_t last_count;
+static uint64_t last_ticks;
+static uint32_t last_elapsed;
+
 #if defined(CONFIG_TEST)
 const int32_t z_sys_timer_irq_for_test = SUPERVISOR_TIMER_IRQN;
 #endif
@@ -102,6 +120,22 @@ static void set_mtimecmp(uint64_t time)
 	// r[1] = 0xffffffff;
 	// r[0] = (uint32_t)time;
 	// r[1] = (uint32_t)(time >> 32);
+#endif
+}
+
+static void set_divider(void)
+{
+#ifdef MTIMER_HAS_DIVIDER
+	*(volatile uint32_t *)MTIMEDIV_REG =
+		CONFIG_RISCV_MACHINE_TIMER_SYSTEM_CLOCK_DIVIDER;
+#endif
+}
+
+static void set_divider(void)
+{
+#ifdef MTIMER_HAS_DIVIDER
+	*(volatile uint32_t *)MTIMEDIV_REG =
+		CONFIG_RISCV_MACHINE_TIMER_SYSTEM_CLOCK_DIVIDER;
 #endif
 }
 
@@ -138,59 +172,50 @@ static void timer_isr(const void *arg)
 	uint64_t now = stime();
 	uint32_t dticks = (uint32_t)((now - last_count) / CYC_PER_TICK);
 
-	last_count = now;
+	last_count += (cycle_diff_t)dticks * CYC_PER_TICK;
+	last_ticks += dticks;
+	last_elapsed = 0;
 
-	if (!TICKLESS) {
+	if (!IS_ENABLED(CONFIG_TICKLESS_KERNEL)) {
 		uint64_t next = last_count + CYC_PER_TICK;
 
-		if ((int64_t)(next - now) < MIN_DELAY) {
-			next += CYC_PER_TICK;
-		}
 		set_mtimecmp(next);
 	}
 
 	k_spin_unlock(&lock, key);
-	sys_clock_announce(IS_ENABLED(CONFIG_TICKLESS_KERNEL) ? dticks : 1);
+	sys_clock_announce(dticks);
 }
 
 void sys_clock_set_timeout(int32_t ticks, bool idle)
 {
 	ARG_UNUSED(idle);
 
-#if defined(CONFIG_TICKLESS_KERNEL)
-	/* RISCV has no idle handler yet, so if we try to spin on the
-	 * logic below to reset the comparator, we'll always bump it
-	 * forward to the "next tick" due to MIN_DELAY handling and
-	 * the interrupt will never fire!  Just rely on the fact that
-	 * the OS gave us the proper timeout already.
-	 */
-	if (idle) {
+	if (!IS_ENABLED(CONFIG_TICKLESS_KERNEL)) {
 		return;
 	}
 
-	ticks = ticks == K_TICKS_FOREVER ? MAX_TICKS : ticks;
-	ticks = CLAMP(ticks - 1, 0, (int32_t)MAX_TICKS);
+	if (ticks == K_TICKS_FOREVER) {
+		set_mtimecmp(UINT64_MAX);
+		return;
+	}
+
+	/*
+	 * Clamp the max period length to a number of cycles that can fit
+	 * in half the range of a cycle_diff_t for native width divisions
+	 * to be usable elsewhere. Also clamp it to half the range of an
+	 * int32_t as this is the type used for elapsed tick announcements.
+	 * The half range gives us extra room to cope with the unavoidable IRQ
+	 * servicing latency. The compiler should optimize away the least
+	 * restrictive of those tests automatically.
+	 */
+	ticks = CLAMP(ticks, 0, (cycle_diff_t)-1 / 2 / CYC_PER_TICK);
+	ticks = CLAMP(ticks, 0, INT32_MAX / 2);
 
 	k_spinlock_key_t key = k_spin_lock(&lock);
 	uint64_t now = stime();
-	uint32_t adj, cyc = ticks * CYC_PER_TICK;
-
-	/* Round up to next tick boundary. */
-	adj = (uint32_t)(now - last_count) + (CYC_PER_TICK - 1);
-	if (cyc <= MAX_CYC - adj) {
-		cyc += adj;
-	} else {
-		cyc = MAX_CYC;
-	}
-	cyc = (cyc / CYC_PER_TICK) * CYC_PER_TICK;
-
-	if ((int32_t)(cyc + last_count - now) < MIN_DELAY) {
-		cyc += CYC_PER_TICK;
-	}
-
-	set_mtimecmp(cyc + last_count);
+	uint64_t cyc = (last_ticks + last_elapsed + ticks) * CYC_PER_TICK;
+	set_mtimecmp(cyc);
 	k_spin_unlock(&lock, key);
-#endif
 }
 
 uint32_t sys_clock_elapsed(void)
@@ -200,10 +225,13 @@ uint32_t sys_clock_elapsed(void)
 	}
 
 	k_spinlock_key_t key = k_spin_lock(&lock);
-	uint32_t ret = ((uint32_t)stime() - (uint32_t)last_count) / CYC_PER_TICK;
+	uint64_t now = stime();
+	uint64_t dcycles = now - last_count;
+	uint32_t dticks = (cycle_diff_t)dcycles / CYC_PER_TICK;
 
+	last_elapsed = dticks;
 	k_spin_unlock(&lock, key);
-	return ret;
+	return dticks;
 }
 
 uint32_t sys_clock_cycle_get_32(void)
@@ -216,12 +244,14 @@ uint64_t sys_clock_cycle_get_64(void)
 	return (stime() << CONFIG_RISCV_MACHINE_TIMER_SYSTEM_CLOCK_DIVIDER);
 }
 
-static int sys_clock_driver_init(const struct device *dev)
+static int sys_clock_driver_init(void)
 {
-	ARG_UNUSED(dev);
+
+	set_divider();
 
 	IRQ_CONNECT(SUPERVISOR_TIMER_IRQN, 0, timer_isr, NULL, 0);
-	last_count = stime();
+	last_ticks = stime() / CYC_PER_TICK;
+	last_count = last_ticks * CYC_PER_TICK;
 	set_mtimecmp(last_count + CYC_PER_TICK);
 	irq_enable(SUPERVISOR_TIMER_IRQN);
 	return 0;

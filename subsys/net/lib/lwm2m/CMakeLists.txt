@@ -14,6 +14,7 @@ zephyr_library_sources(
     lwm2m_obj_device.c
     lwm2m_rw_link_format.c
     lwm2m_rw_plain_text.c
+    lwm2m_rw_opaque.c
     lwm2m_util.c
     lwm2m_rd_client.c
     )
@@ -110,6 +111,9 @@ zephyr_library_sources_ifdef(CONFIG_LWM2M_IPSO_PUSH_BUTTON
     )
 zephyr_library_sources_ifdef(CONFIG_LWM2M_IPSO_CURRENT_SENSOR
     ipso_current_sensor.c
+    )
+zephyr_library_sources_ifdef(CONFIG_LWM2M_IPSO_VOLTAGE_SENSOR
+    ipso_voltage_sensor.c
     )
 zephyr_library_sources_ifdef(CONFIG_LWM2M_IPSO_FILLING_SENSOR
     ipso_filling_sensor.c

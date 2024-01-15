@@ -14,8 +14,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#include "can_utils.h"
-
 LOG_MODULE_REGISTER(can_loopback, CONFIG_CAN_LOG_LEVEL);
 
 struct can_loopback_frame {
@@ -88,7 +86,7 @@ static void tx_thread(void *arg1, void *arg2, void *arg3)
 		for (int i = 0; i < CONFIG_CAN_MAX_FILTER; i++) {
 			filter = &data->filters[i];
 			if (filter->rx_cb != NULL &&
-			    can_utils_filter_match(&frame.frame, &filter->filter)) {
+			    can_frame_matches_filter(&frame.frame, &filter->filter)) {
 				receive_frame(dev, &frame.frame, filter);
 			}
 		}
@@ -213,7 +211,7 @@ static void can_loopback_remove_rx_filter(const struct device *dev, int filter_i
 {
 	struct can_loopback_data *data = dev->data;
 
-	if (filter_id >= ARRAY_SIZE(data->filters)) {
+	if (filter_id < 0 || filter_id >= ARRAY_SIZE(data->filters)) {
 		LOG_ERR("filter ID %d out-of-bounds", filter_id);
 		return;
 	}
@@ -462,9 +460,9 @@ static int can_loopback_init(const struct device *dev)
 #define CAN_LOOPBACK_INIT(inst)						\
 	static struct can_loopback_data can_loopback_dev_data_##inst;	\
 									\
-	DEVICE_DT_INST_DEFINE(inst, &can_loopback_init, NULL,		\
-			      &can_loopback_dev_data_##inst, NULL,	\
-			      POST_KERNEL, CONFIG_CAN_INIT_PRIORITY,	\
-			      &can_loopback_driver_api);
+	CAN_DEVICE_DT_INST_DEFINE(inst, can_loopback_init, NULL,	\
+				  &can_loopback_dev_data_##inst, NULL,	\
+				  POST_KERNEL, CONFIG_CAN_INIT_PRIORITY,\
+				  &can_loopback_driver_api);
 
 DT_INST_FOREACH_STATUS_OKAY(CAN_LOOPBACK_INIT)

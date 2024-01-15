@@ -102,9 +102,9 @@ GTEXT(_isr_wrapper)
  * Handler called upon each exception/interrupt/fault
  */
 SECTION_FUNC(exception.entry, _isr_wrapper)
-
+/* Provide requested alignment, which depends e.g. on MTVEC format */
+.balign CONFIG_RISCV_TRAP_HANDLER_ALIGNMENT
 /* top half of trap (write scause\stval\sepc) is conducted by HW */
-
 #ifdef CONFIG_USERSPACE
 	/* retrieve address of _current_cpu preserving s0 */
 	csrrw s0, sscratch, s0
@@ -561,6 +561,8 @@ irq_done:
 
 check_reschedule:
 
+#ifdef CONFIG_MULTITHREADING
+
 	/* Get pointer to current thread on this CPU */
 	lr a1, ___cpu_t_current_OFFSET(s0)
 
@@ -590,6 +592,8 @@ z_riscv_thread_start:
 might_have_rescheduled:
 	/* reload s0 with &_current_cpu as it might have changed or be unset */
 	get_current_cpu s0
+
+#endif /* CONFIG_MULTITHREADING */
 
 no_reschedule:
 

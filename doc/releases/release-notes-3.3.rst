@@ -2013,6 +2013,18 @@ Shields
     to provide a device nodelabel in the form ``<device>_<shield>``. In-tree shields
     have been updated to follow this recommendation.
 
+* Others
+
+  * STM32F1 SoCs
+
+    * Added new pinctrl definitions for STM32F1xx PWM input. In PWM capture mode
+      STM32F1xx pins have to be configured as input and not as alternate.
+      The new names takes the form tim1_ch1_pwm_in_pa8 for example.
+
+    * Renamed pinctrl definitions for STM32F1xx PWM output to differentiate them
+      from newly created inputs. The new names takes the form tim1_ch1_pwm_out_pa8
+      instead of tim1_ch1_pwm_pa8.
+
 Libraries / Subsystems
 **********************
 
@@ -2484,13 +2496,13 @@ Libraries / Subsystems
     * Uses mutex to control channels access.
     * Added the following samples:
 
-      * :ref:`zbus-hello-world-sample`
-      * :ref:`zbus-work-queue-sample`
-      * :ref:`zbus-dyn-channel-sample`
-      * :ref:`zbus-uart-bridge-sample`
-      * :ref:`zbus-remote-mock-sample`
-      * :ref:`zbus-runtime-obs-registration-sample`
-      * :ref:`zbus-benchmark-sample`
+      * :zephyr:code-sample:`zbus-hello-world`
+      * :zephyr:code-sample:`zbus-work-queue`
+      * :zephyr:code-sample:`zbus-dyn-channel`
+      * :zephyr:code-sample:`zbus-uart-bridge`
+      * :zephyr:code-sample:`zbus-remote-mock`
+      * :zephyr:code-sample:`zbus-runtime-obs-registration`
+      * :zephyr:code-sample:`zbus-benchmark`
 
     * Added zbus channels APIs:
 

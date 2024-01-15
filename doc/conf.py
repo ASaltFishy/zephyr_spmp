@@ -5,6 +5,7 @@ import sys
 import os
 from pathlib import Path
 import re
+import textwrap
 
 from sphinx.cmd.build import get_parser
 import sphinx_rtd_theme
@@ -72,6 +73,7 @@ extensions = [
     "sphinx.ext.extlinks",
     "sphinx.ext.autodoc",
     "sphinx.ext.graphviz",
+    "sphinxcontrib.jquery",
     "zephyr.application",
     "zephyr.html_redirects",
     "zephyr.kconfig",
@@ -81,9 +83,12 @@ extensions = [
     "zephyr.warnings_filter",
     "zephyr.doxyrunner",
     "zephyr.vcs_link",
+    "zephyr.manifest_projects_table",
     "notfound.extension",
     "sphinx_copybutton",
+    "sphinx_togglebutton",
     "zephyr.external_content",
+    "zephyr.domain",
 ]
 
 # Only use SVG converter when it is really needed, e.g. LaTeX.
@@ -102,8 +107,6 @@ else:
 pygments_style = "sphinx"
 
 todo_include_todos = False
-
-numfig = True
 
 nitpick_ignore = [
     # ignore C standard identifiers (they are not defined in Zephyr docs)
@@ -161,22 +164,17 @@ html_context = {
     "current_version": version,
     "versions": (
         ("latest", "/"),
+        ("3.5.0", "/3.5.0/"),
+        ("3.4.0", "/3.4.0/"),
         ("3.3.0", "/3.3.0/"),
-        ("3.2.0", "/3.2.0/"),
-        ("3.1.0", "/3.1.0/"),
-        ("3.0.0", "/3.0.0/"),
-        ("2.7.4 (LTS)", "/2.7.4/"),
-        ("2.6.0", "/2.6.0/"),
-        ("2.5.0", "/2.5.0/"),
-        ("2.4.0", "/2.4.0/"),
-        ("2.3.0", "/2.3.0/"),
-        ("1.14.1", "/1.14.1/"),
+        ("2.7.5 (LTS)", "/2.7.5/"),
     ),
     "display_vcs_link": True,
     "reference_links": {
         "API": f"{reference_prefix}/doxygen/html/index.html",
         "Kconfig Options": f"{reference_prefix}/kconfig.html",
         "Devicetree Bindings": f"{reference_prefix}/build/dts/api/bindings.html",
+        "West Projects": f"{reference_prefix}/develop/manifest/index.html",
     }
 }
 
@@ -186,7 +184,11 @@ latex_elements = {
     "papersize": "a4paper",
     "maketitle": open(ZEPHYR_BASE / "doc" / "_static" / "latex" / "title.tex").read(),
     "preamble": open(ZEPHYR_BASE / "doc" / "_static" / "latex" / "preamble.tex").read(),
-    "fontpkg": r"\usepackage{charter}",
+    "fontpkg": textwrap.dedent(r"""
+                                    \usepackage{noto}
+                                    \usepackage{inconsolata-nerd-font}
+                                    \usepackage[T1]{fontenc}
+                                """),
     "sphinxsetup": ",".join(
         (
             # NOTE: colors match those found in light.css stylesheet
@@ -203,12 +205,7 @@ latex_logo = str(ZEPHYR_BASE / "doc" / "_static" / "images" / "logo-latex.pdf")
 latex_documents = [
     ("index-tex", "zephyr.tex", "Zephyr Project Documentation", author, "manual"),
 ]
-
-# -- Options for linkcheck ------------------------------------------------
-
-linkcheck_ignore = [
-    r"https://github.com/zephyrproject-rtos/zephyr/issues/.*"
-]
+latex_engine = "xelatex"
 
 # -- Options for zephyr.doxyrunner plugin ---------------------------------
 
@@ -232,6 +229,7 @@ breathe_default_members = ("members", )
 
 cpp_id_attributes = [
     "__syscall",
+    "__syscall_always_inline",
     "__deprecated",
     "__may_alias",
     "__used",
@@ -269,6 +267,7 @@ vcs_link_base_url = f"https://github.com/zephyrproject-rtos/zephyr/blob/{vcs_lin
 vcs_link_prefixes = {
     "samples/.*": "",
     "boards/.*": "",
+    "snippets/.*": "",
     ".*": "doc",
 }
 vcs_link_exclude = [
@@ -288,11 +287,15 @@ external_content_contents = [
     (ZEPHYR_BASE / "doc", "[!_]*"),
     (ZEPHYR_BASE, "boards/**/*.rst"),
     (ZEPHYR_BASE, "boards/**/doc"),
+    (ZEPHYR_BASE, "samples/**/*.html"),
     (ZEPHYR_BASE, "samples/**/*.rst"),
     (ZEPHYR_BASE, "samples/**/doc"),
+    (ZEPHYR_BASE, "snippets/**/*.rst"),
+    (ZEPHYR_BASE, "snippets/**/doc"),
 ]
 external_content_keep = [
     "reference/kconfig/*",
+    "develop/manifest/index.rst",
     "build/dts/api/bindings.rst",
     "build/dts/api/bindings/**/*",
     "build/dts/api/compatibles/**/*",
@@ -311,7 +314,16 @@ graphviz_dot_args = [
     "-Ecolor=gray60",
 ]
 
+# -- Options for sphinx_copybutton ----------------------------------------
+
+copybutton_prompt_text = r"\$ |uart:~\$ "
+copybutton_prompt_is_regexp = True
+
 # -- Linkcheck options ----------------------------------------------------
+
+linkcheck_ignore = [
+    r"https://github.com/zephyrproject-rtos/zephyr/issues/.*"
+]
 
 extlinks = {
     "github": ("https://github.com/zephyrproject-rtos/zephyr/issues/%s", "GitHub #%s"),

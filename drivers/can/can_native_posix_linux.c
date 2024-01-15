@@ -17,7 +17,6 @@
 #include <zephyr/net/socketcan.h>
 #include <zephyr/net/socketcan_utils.h>
 
-#include "can_utils.h"
 #include "can_native_posix_linux_socketcan.h"
 
 LOG_MODULE_REGISTER(can_npl, CONFIG_CAN_LOG_LEVEL);
@@ -60,8 +59,7 @@ static void dispatch_frame(const struct device *dev, struct can_frame *frame)
 			continue;
 		}
 
-		if (!can_utils_filter_match(frame,
-					    &data->filters[filter_id].filter)) {
+		if (!can_frame_matches_filter(frame, &data->filters[filter_id].filter)) {
 			continue;
 		}
 
@@ -241,6 +239,7 @@ static void can_npl_remove_rx_filter(const struct device *dev, int filter_id)
 	struct can_npl_data *data = dev->data;
 
 	if (filter_id < 0 || filter_id >= ARRAY_SIZE(data->filters)) {
+		LOG_ERR("filter ID %d out of bounds");
 		return;
 	}
 
@@ -490,9 +489,9 @@ static const struct can_npl_config can_npl_cfg_##inst = {			\
 										\
 static struct can_npl_data can_npl_data_##inst;					\
 										\
-DEVICE_DT_INST_DEFINE(inst, &can_npl_init, NULL,				\
-		      &can_npl_data_##inst, &can_npl_cfg_##inst,		\
-		      POST_KERNEL, CONFIG_CAN_INIT_PRIORITY,			\
-		      &can_npl_driver_api);
+CAN_DEVICE_DT_INST_DEFINE(inst, can_npl_init, NULL,				\
+			  &can_npl_data_##inst, &can_npl_cfg_##inst,		\
+			  POST_KERNEL, CONFIG_CAN_INIT_PRIORITY,		\
+			  &can_npl_driver_api);
 
 DT_INST_FOREACH_STATUS_OKAY(CAN_NATIVE_POSIX_LINUX_INIT)

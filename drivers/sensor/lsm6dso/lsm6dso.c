@@ -23,15 +23,15 @@
 
 LOG_MODULE_REGISTER(LSM6DSO, CONFIG_SENSOR_LOG_LEVEL);
 
-static const uint16_t lsm6dso_odr_map[] = {0, 12, 26, 52, 104, 208, 416, 833,
-					1660, 3330, 6660};
+static const uint16_t lsm6dso_odr_map[] = {0, 12, 26, 52, 104, 208, 417, 833,
+					1667, 3333, 6667};
 
 static int lsm6dso_freq_to_odr_val(uint16_t freq)
 {
 	size_t i;
 
 	for (i = 0; i < ARRAY_SIZE(lsm6dso_odr_map); i++) {
-		if (freq == lsm6dso_odr_map[i]) {
+		if (freq <= lsm6dso_odr_map[i]) {
 			return i;
 		}
 	}
@@ -923,14 +923,7 @@ static int lsm6dso_init(const struct device *dev)
 
 #define LSM6DSO_CONFIG_SPI(inst)					\
 	{								\
-		.ctx = {						\
-			.read_reg =					\
-			   (stmdev_read_ptr) stmemsc_spi_read,		\
-			.write_reg =					\
-			   (stmdev_write_ptr) stmemsc_spi_write,	\
-			.handle =					\
-			   (void *)&lsm6dso_config_##inst.stmemsc_cfg,	\
-		},							\
+		STMEMSC_CTX_SPI(&lsm6dso_config_##inst.stmemsc_cfg),	\
 		.stmemsc_cfg = {					\
 			.spi = SPI_DT_SPEC_INST_GET(inst,		\
 					   LSM6DSO_SPI_OP,		\
@@ -945,14 +938,7 @@ static int lsm6dso_init(const struct device *dev)
 
 #define LSM6DSO_CONFIG_I2C(inst)					\
 	{								\
-		.ctx = {						\
-			.read_reg =					\
-			   (stmdev_read_ptr) stmemsc_i2c_read,		\
-			.write_reg =					\
-			   (stmdev_write_ptr) stmemsc_i2c_write,	\
-			.handle =					\
-			   (void *)&lsm6dso_config_##inst.stmemsc_cfg,	\
-		},							\
+		STMEMSC_CTX_I2C(&lsm6dso_config_##inst.stmemsc_cfg),	\
 		.stmemsc_cfg = {					\
 			.i2c = I2C_DT_SPEC_INST_GET(inst),		\
 		},							\

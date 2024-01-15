@@ -3,7 +3,7 @@
 # Copyright (c) 2015 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-menu "Interrupt Controllers"
+menu "Interrupt controller drivers"
 
 config ARCV2_INTERRUPT_UNIT
 	bool "ARCv2 Interrupt Unit"
@@ -97,5 +97,9 @@ source "drivers/interrupt_controller/Kconfig.plic"
 source "drivers/interrupt_controller/Kconfig.nxp_s32"
 
 source "drivers/interrupt_controller/Kconfig.xmc4xxx"
+
+source "drivers/interrupt_controller/Kconfig.nxp_pint"
+
+source "drivers/interrupt_controller/Kconfig.vim"
 
 endmenu

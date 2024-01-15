@@ -113,7 +113,7 @@ void threadA(void *dummy1, void *dummy2, void *dummy3)
 	helloLoop(__func__, &threadA_sem, &threadB_sem);
 }
 
-void main(void)
+int main(void)
 {
 	k_mem_domain_add_partition(&k_mem_domain_default, &my_partition);
 	k_thread_create(&threadA_data, threadA_stack_area,
@@ -140,4 +140,5 @@ void main(void)
 
 	k_thread_start(&threadA_data);
 	k_thread_start(&threadB_data);
+	return 0;
 }
