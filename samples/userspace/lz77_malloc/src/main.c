@@ -16,7 +16,7 @@
 #include <zephyr/sys/libc-hooks.h>
 
 
-#define FILE_SIZE (16<<19UL)
+#define FILE_SIZE (16<<14UL)
 #define USER_STACKSIZE	2048
 
 struct k_thread user_thread;

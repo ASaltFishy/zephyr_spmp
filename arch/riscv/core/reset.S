@@ -41,7 +41,10 @@ SECTION_FUNC(reset, __reset)
  * Remainder of asm-land initialization code before we can jump into
  * the C domain
  */
- // hart id is stored in $a0 by default
+ /*
+ * hart id is stored in $a0 by default
+ * boot hart will store its id in my_global_variable
+ */
 SECTION_FUNC(TEXT, __initialize)
 
 	la t0, my_global_variable

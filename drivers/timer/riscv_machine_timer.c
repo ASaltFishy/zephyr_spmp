@@ -131,14 +131,6 @@ static void set_divider(void)
 #endif
 }
 
-static void set_divider(void)
-{
-#ifdef MTIMER_HAS_DIVIDER
-	*(volatile uint32_t *)MTIMEDIV_REG =
-		CONFIG_RISCV_MACHINE_TIMER_SYSTEM_CLOCK_DIVIDER;
-#endif
-}
-
 static uint64_t stime(void)
 {
 #ifdef CONFIG_64BIT
@@ -212,7 +204,7 @@ void sys_clock_set_timeout(int32_t ticks, bool idle)
 	ticks = CLAMP(ticks, 0, INT32_MAX / 2);
 
 	k_spinlock_key_t key = k_spin_lock(&lock);
-	uint64_t now = stime();
+	// uint64_t now = stime();
 	uint64_t cyc = (last_ticks + last_elapsed + ticks) * CYC_PER_TICK;
 	set_mtimecmp(cyc);
 	k_spin_unlock(&lock, key);

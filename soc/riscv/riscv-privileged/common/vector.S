@@ -83,7 +83,7 @@ SECTION_FUNC(vectors, __start)
 	 * to _isr_wrapper.
 	 */
 	la t0, _isr_wrapper
-	csrw mtvec, t0
+	csrw stvec, t0
 
 #endif /* CONFIG_RISCV_VECTORED_MODE */
 

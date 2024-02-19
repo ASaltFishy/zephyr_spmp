@@ -71,7 +71,7 @@ static void user_function(void *p1, void *p2, void *p3) {
 
 	uint64_t start_time = k_uptime_get();
 
-	linpack(2000);
+	linpack(1000);
 
 	uint64_t stop_time = k_uptime_get();
 

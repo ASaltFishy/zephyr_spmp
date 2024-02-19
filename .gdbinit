@@ -5,15 +5,20 @@ file /home/lrc/zephyr-spmp/samples/synchronization/build/zephyr/zephyr.elf
 
 b _start
 b z_thread_entry
-b z_riscv_pmp_init
+# b z_riscv_pmp_init
 b set_pmp_entry
-# b *0x80200000
-# b z_cstart
-# b __initialize
-# b __reset
+b *0x80200000
+b z_cstart
+b __initialize
+b __reset
+b sys_heap_init
+b set_chunk_used
+b malloc_prepare
 # b arch_kernel_init
 # b boot_first_core
 # b boot_secondary_core
+
+# b sbi_set_timer
 
 b sbi_ecall_hsm_handler
 # b z_riscv_pmp_init
