@@ -1258,13 +1258,8 @@ static int send(struct isotp_send_ctx *sctx, const struct device *can_dev,
 		k_work_submit(&sctx->work);
 	} else {
 		LOG_DBG("Sending single frame");
-<<<<<<< HEAD
-		ctx->filter_id = -1;
-		ret = send_sf(ctx);
-=======
 		sctx->filter_id = -1;
 		ret = send_sf(sctx);
->>>>>>> upstream/v3.5-branch
 		if (ret) {
 			free_send_ctx(&sctx);
 			return ret == -EAGAIN ?

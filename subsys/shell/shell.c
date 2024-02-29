@@ -1056,17 +1056,10 @@ static void state_collect(const struct shell *sh)
 
 			default:
 				if (isprint((int) data) != 0) {
-<<<<<<< HEAD
-					z_flag_history_exit_set(shell, true);
-					z_shell_op_char_insert(shell, data);
-				} else if (z_flag_echo_get(shell)) {
-					ctrl_metakeys_handle(shell, data);
-=======
 					z_flag_history_exit_set(sh, true);
 					z_shell_op_char_insert(sh, data);
 				} else if (z_flag_echo_get(sh)) {
 					ctrl_metakeys_handle(sh, data);
->>>>>>> upstream/v3.5-branch
 				}
 				break;
 			}
@@ -1572,11 +1565,7 @@ void shell_hexdump_line(const struct shell *sh, unsigned int offset,
 		if (i < len) {
 			char c = data[i];
 
-<<<<<<< HEAD
-			shell_fprintf(shell, SHELL_NORMAL, "%c",
-=======
 			shell_fprintf(sh, SHELL_NORMAL, "%c",
->>>>>>> upstream/v3.5-branch
 				      isprint((int)c) != 0 ? c : '.');
 		} else {
 			shell_fprintf(sh, SHELL_NORMAL, " ");

@@ -316,47 +316,6 @@ static void create_thread(struct config *conf, const char *name)
 
 int smp_udp_open(void)
 {
-<<<<<<< HEAD
-	struct config *conf;
-	int sock;
-
-#ifdef CONFIG_MCUMGR_TRANSPORT_UDP_IPV4
-	struct sockaddr_in addr4;
-
-	memset(&addr4, 0, sizeof(addr4));
-	addr4.sin_family = AF_INET;
-	addr4.sin_port = htons(CONFIG_MCUMGR_TRANSPORT_UDP_PORT);
-	addr4.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	conf = &configs.ipv4;
-	sock = create_socket((struct sockaddr *)&addr4, conf->proto);
-
-	if (sock < 0) {
-		return -MGMT_ERR_EUNKNOWN;
-	}
-	conf->sock = sock;
-
-	create_thread(conf, "smp_udp4");
-#endif
-
-#ifdef CONFIG_MCUMGR_TRANSPORT_UDP_IPV6
-	struct sockaddr_in6 addr6;
-
-	memset(&addr6, 0, sizeof(addr6));
-	addr6.sin6_family = AF_INET6;
-	addr6.sin6_port = htons(CONFIG_MCUMGR_TRANSPORT_UDP_PORT);
-	addr6.sin6_addr = in6addr_any;
-
-	conf = &configs.ipv6;
-	sock = create_socket((struct sockaddr *)&addr6, conf->proto);
-
-	if (sock < 0) {
-		return -MGMT_ERR_EUNKNOWN;
-	}
-	conf->sock = sock;
-
-	create_thread(conf, "smp_udp6");
-=======
 	bool started = false;
 
 #ifdef CONFIG_MCUMGR_TRANSPORT_UDP_IPV4
@@ -377,7 +336,6 @@ int smp_udp_open(void)
 	} else {
 		LOG_ERR("IPv6 UDP MCUmgr thread is already running");
 	}
->>>>>>> upstream/v3.5-branch
 #endif
 
 	if (started) {

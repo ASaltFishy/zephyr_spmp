@@ -514,8 +514,6 @@ class TestPlan:
 
                 suite_yaml_path = os.path.join(dirpath, filename)
                 suite_path = os.path.dirname(suite_yaml_path)
-<<<<<<< HEAD
-=======
 
                 for alt_config_root in self.env.alt_config_root:
                     alt_config = os.path.join(os.path.abspath(alt_config_root),
@@ -526,15 +524,10 @@ class TestPlan:
                                     os.path.normpath(alt_config))
                         suite_yaml_path = alt_config
                         break
->>>>>>> upstream/v3.5-branch
 
                 try:
                     parsed_data = TwisterConfigParser(suite_yaml_path, self.suite_schema)
                     parsed_data.load()
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/v3.5-branch
                     subcases, ztest_suite_names = scan_testsuite_path(suite_path)
 
                     for name in parsed_data.scenarios.keys():

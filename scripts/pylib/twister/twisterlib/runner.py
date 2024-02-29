@@ -958,11 +958,7 @@ class ProjectBuilder(FilterBuilder):
             if total_to_do > 0:
                 completed_perc = int((float(results.done) / total_to_do) * 100)
 
-<<<<<<< HEAD
-            sys.stdout.write("\rINFO    - Total complete: %s%4d/%4d%s  %2d%%  skipped: %s%4d%s, failed: %s%4d%s, error: %s%4d%s" % (
-=======
             sys.stdout.write("INFO    - Total complete: %s%4d/%4d%s  %2d%%  skipped: %s%4d%s, failed: %s%4d%s, error: %s%4d%s\r" % (
->>>>>>> upstream/v3.5-branch
                 Fore.GREEN,
                 results.done,
                 total_to_do,

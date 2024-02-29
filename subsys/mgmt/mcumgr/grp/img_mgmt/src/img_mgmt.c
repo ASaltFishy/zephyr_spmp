@@ -325,10 +325,7 @@ img_mgmt_erase(struct smp_streamer *ctxt)
 {
 	struct image_version ver;
 	int rc;
-<<<<<<< HEAD
-=======
 	zcbor_state_t *zse = ctxt->writer->zs;
->>>>>>> upstream/v3.5-branch
 	zcbor_state_t *zsd = ctxt->reader->zs;
 	bool ok;
 	uint32_t slot = img_mgmt_get_opposite_slot(img_mgmt_active_slot(img_mgmt_active_image()));
@@ -379,24 +376,15 @@ img_mgmt_erase(struct smp_streamer *ctxt)
 	}
 
 	if (IS_ENABLED(CONFIG_MCUMGR_SMP_LEGACY_RC_BEHAVIOUR)) {
-<<<<<<< HEAD
-		zcbor_state_t *zse = ctxt->writer->zs;
-
-		if (!zcbor_tstr_put_lit(zse, "rc") || !zcbor_int32_put(zse, 0)) {
-=======
 		if (!zcbor_tstr_put_lit(zse, "rc") || !zcbor_int32_put(zse, 0)) {
 			img_mgmt_release_lock();
->>>>>>> upstream/v3.5-branch
 			return MGMT_ERR_EMSGSIZE;
 		}
 	}
 
-<<<<<<< HEAD
-=======
 end:
 	img_mgmt_release_lock();
 
->>>>>>> upstream/v3.5-branch
 	return MGMT_ERR_EOK;
 }
 
