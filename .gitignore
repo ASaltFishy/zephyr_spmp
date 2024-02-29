@@ -110,3 +110,6 @@ SysbuildKconfigBasic.txt
 SysbuildKconfigBasicNoModules.txt
 TextEncoding.txt
 YAMLLint.txt
+
+# files for debug
+.gdbinit

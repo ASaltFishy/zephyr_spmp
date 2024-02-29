@@ -43,6 +43,12 @@ extern void arm_core_mpu_disable(void);
 #define BYTES_TO_READ_WRITE 1
 #define STACKSIZE (256 + CONFIG_TEST_EXTRA_STACK_SIZE)
 
+#define SMPU_WRITE_CFG(g, val) ({                                    \
+    unsigned long __wv = (unsigned long)(val);                                      \
+    __asm__ volatile("csrw " #g ", %0" :: "r" (__wv) : "memory"); \
+})
+
+
 K_SEM_DEFINE(test_revoke_sem, 0, 1);
 
 /* Used for tests that switch between domains, we will switch between the
