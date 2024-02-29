@@ -16,6 +16,7 @@
 #define ZEPHYR_ARCH_RISCV_INCLUDE_KERNEL_ARCH_FUNC_H_
 
 #include <kernel_arch_data.h>
+#include <zephyr/arch/riscv/sbi.h>
 #include <pmp.h>
 
 #include <zephyr/platform/hooks.h>
@@ -71,7 +72,7 @@ arch_switch(void *switch_to, void **switched_from)
 	struct k_thread *old = CONTAINER_OF(switched_from, struct k_thread,
 					    switch_handle);
 #ifdef CONFIG_RISCV_ALWAYS_SWITCH_THROUGH_ECALL
-	arch_syscall_invoke2((uintptr_t)new, (uintptr_t)old, RV_ECALL_SCHEDULE);
+	sbi_schedule((uintptr_t)new, (uintptr_t)old, RV_ECALL_SCHEDULE);
 #else
 	z_riscv_switch(new, old);
 #endif
