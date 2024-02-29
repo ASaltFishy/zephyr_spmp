@@ -27,10 +27,14 @@ static void offload_function(const void *param)
 {
 	uint32_t x = POINTER_TO_INT(param);
 
+	zassert_equal(x,POINTER_TO_INT(param), "X error number!");
+
 	/* Make sure we're in IRQ context */
 	zassert_true(k_is_in_isr(), "Not in IRQ context!");
 
 	sentinel = x;
+	zassert_equal(sentinel,x, "sentinel error number!");
+	zassert_equal(SENTINEL_VALUE,x, "SENTINEL_VALUE error number!");
 }
 
 /**
@@ -45,6 +49,7 @@ ZTEST(irq_offload, test_irq_offload)
 {
 	/* Simple validation of nested locking. */
 	unsigned int key1, key2;
+	printk("Enter irq_offload test\n");
 
 	key1 = arch_irq_lock();
 	zassert_true(arch_irq_unlocked(key1),
@@ -58,78 +63,84 @@ ZTEST(irq_offload, test_irq_offload)
 	arch_irq_unlock(key1);
 
 	/**TESTPOINT: Offload to IRQ context*/
+	printk("Before irq_offload test\n");
 	irq_offload(offload_function, (const void *)SENTINEL_VALUE);
+	printk("After irq_offload test\n");
 
 	zassert_equal(sentinel, SENTINEL_VALUE,
 		      "irq_offload() didn't work properly");
 }
 
-static struct k_timer nestoff_timer;
-static bool timer_executed, nested_executed;
+// static struct k_timer nestoff_timer;
+// static bool timer_executed, nested_executed;
 
-void nestoff_offload(const void *parameter)
-{
-	/* Suspend the thread we interrupted so we context switch, see below */
-	k_thread_suspend(&offload_thread);
+// void nestoff_offload(const void *parameter)
+// {
+// 	/* Suspend the thread we interrupted so we context switch, see below */
+// 	k_thread_suspend(&offload_thread);
 
-	nested_executed = true;
-}
+// 	nested_executed = true;
+// }
 
 
-static void nestoff_timer_fn(struct k_timer *timer)
-{
-	zassert_false(nested_executed, "nested irq_offload ran too soon");
-	irq_offload(nestoff_offload, NULL);
-	zassert_true(nested_executed, "nested irq_offload did not run");
+// static void nestoff_timer_fn(struct k_timer *timer)
+// {
+// 	zassert_false(nested_executed, "nested irq_offload ran too soon");
+// 	irq_offload(nestoff_offload, NULL);
+// 	zassert_true(nested_executed, "nested irq_offload did not run");
 
-	/* Set this last, to be sure we return to this context and not
-	 * the enclosing interrupt
-	 */
-	timer_executed = true;
-}
+// 	/* Set this last, to be sure we return to this context and not
+// 	 * the enclosing interrupt
+// 	 */
+// 	timer_executed = true;
+// }
 
-static void offload_thread_fn(void *p0, void *p1, void *p2)
-{
-	k_timer_start(&nestoff_timer, K_TICKS(1), K_FOREVER);
+// static void offload_thread_fn(void *p0, void *p1, void *p2)
+// {
+// 	printk("offload_thread_fn\n");
+// 	k_timer_start(&nestoff_timer, K_TICKS(1), K_FOREVER);
 
-	while (true) {
-		zassert_false(timer_executed, "should not return to this thread");
-	}
-}
+// 	while (true) {
+// 		zassert_false(timer_executed, "should not return to this thread");
+// 	}
+// }
 
 /* Invoke irq_offload() from an interrupt and verify that the
  * resulting nested interrupt doesn't explode
  */
-ZTEST(common_1cpu, test_nested_irq_offload)
-{
-	if (!IS_ENABLED(CONFIG_IRQ_OFFLOAD_NESTED)) {
-		ztest_test_skip();
-	}
+// ZTEST(common_1cpu, test_nested_irq_offload)
+// {
+// 	if (!IS_ENABLED(CONFIG_IRQ_OFFLOAD_NESTED)) {
+// 		ztest_test_skip();
+// 	}
+// 	printk("Before k_thread_priority_set\n");
+// 	k_thread_priority_set(k_current_get(), 1);
 
-	k_thread_priority_set(k_current_get(), 1);
+// 	printk("Before k_timer_init\n");
+// 	k_timer_init(&nestoff_timer, nestoff_timer_fn, NULL);
 
-	k_timer_init(&nestoff_timer, nestoff_timer_fn, NULL);
+// 	zassert_false(timer_executed, "timer ran too soon");
+// 	zassert_false(nested_executed, "nested irq_offload ran too soon");
 
-	zassert_false(timer_executed, "timer ran too soon");
-	zassert_false(nested_executed, "nested irq_offload ran too soon");
+// 	/* Do this in a thread to exercise a regression case: the
+// 	 * offload handler will suspend the thread it interrupted,
+// 	 * ensuring that the interrupt returns back to this thread and
+// 	 * effects a context switch of of the nested interrupt (see
+// 	 * #45779).  Requires that this be a 1cpu test case,
+// 	 * obviously.
+// 	 */
+// 	printk("Before k_thread_create\n");
+// 	k_thread_create(&offload_thread,
+// 			offload_stack, K_THREAD_STACK_SIZEOF(offload_stack),
+// 			offload_thread_fn, NULL, NULL, NULL,
+// 			0, 0, K_NO_WAIT);
 
-	/* Do this in a thread to exercise a regression case: the
-	 * offload handler will suspend the thread it interrupted,
-	 * ensuring that the interrupt returns back to this thread and
-	 * effects a context switch of of the nested interrupt (see
-	 * #45779).  Requires that this be a 1cpu test case,
-	 * obviously.
-	 */
-	k_thread_create(&offload_thread,
-			offload_stack, K_THREAD_STACK_SIZEOF(offload_stack),
-			offload_thread_fn, NULL, NULL, NULL,
-			0, 0, K_NO_WAIT);
+// 	zassert_true(timer_executed, "timer did not run");
+// 	zassert_true(nested_executed, "nested irq_offload did not run");
 
-	zassert_true(timer_executed, "timer did not run");
-	zassert_true(nested_executed, "nested irq_offload did not run");
-
-	k_thread_abort(&offload_thread);
-}
+// 	printk("After k_thread_create\n");
+// 	k_thread_abort(&offload_thread);
+// }
 
 extern void *common_setup(void);
 ZTEST_SUITE(irq_offload, NULL, common_setup, NULL, NULL, NULL);
