@@ -168,10 +168,10 @@ static inline void trigger_irq(int irq)
 #elif defined(CONFIG_RISCV)
 static inline void trigger_irq(int irq)
 {
-	uint32_t mip;
+	uint32_t sip;
 
-	__asm__ volatile ("csrrs %0, mip, %1\n"
-			  : "=r" (mip)
+	__asm__ volatile ("csrrs %0, sip, %1\n"
+			  : "=r" (sip)
 			  : "r" (1 << irq));
 }
 

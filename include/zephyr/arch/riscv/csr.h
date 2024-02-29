@@ -208,6 +208,14 @@
 				: "memory");			\
 })
 
+#define csr_write_spmp(csr, val)					\
+({								\
+	unsigned long __wv = (unsigned long)(val);		\
+	__asm__ volatile ("csrw " STRINGIFY(csr) ", %0"		\
+				: : "rK" (__wv)			\
+				: "memory");			\
+})
+
 
 #define csr_read_set(csr, val)					\
 ({								\

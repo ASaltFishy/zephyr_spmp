@@ -33,6 +33,12 @@ extern void arm_core_mpu_disable(void);
 #define BYTES_TO_READ_WRITE 1
 #define STACKSIZE (256 + CONFIG_TEST_EXTRA_STACK_SIZE)
 
+#define SMPU_WRITE_CFG(g, val) ({                                    \
+    unsigned long __wv = (unsigned long)(val);                                      \
+    __asm__ volatile("csrw " #g ", %0" :: "r" (__wv) : "memory"); \
+})
+
+
 K_SEM_DEFINE(test_revoke_sem, 0, 1);
 
 /* Used for tests that switch between domains, we will switch between the
@@ -243,8 +249,9 @@ ZTEST_USER(userspace, test_disable_mmu_mpu)
 	 * Try to make everything accessible through PMP slot 3
 	 * which should not be locked.
 	 */
-	csr_write(pmpaddr3, LLONG_MAX);
-	csr_write(pmpcfg0, (PMP_R|PMP_W|PMP_X|PMP_NAPOT) << 24);
+	// #define CSR_SMPUADDR3 0x1b3, #define CSR_SMPUCFG0 0x1a0
+	SMPU_WRITE_CFG(0x1b3, LLONG_MAX);
+	SMPU_WRITE_CFG(0x1a0, (PMP_R|PMP_W|PMP_X|PMP_NAPOT) << 24);
 #else
 #error "Not implemented for this architecture"
 #endif

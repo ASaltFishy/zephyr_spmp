@@ -81,3 +81,6 @@ ModulesMaintainers.txt
 Nits.txt
 Pylint.txt
 YAMLLint.txt
+
+# files for debug
+.gdbinit

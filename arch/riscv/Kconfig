@@ -221,7 +221,7 @@ if RISCV_PMP
 
 config PMP_SLOTS
 	int "Number of PMP slots"
-	default 8
+	default 64
 	help
 	  This is the number of PMP entries implemented by the hardware.
 	  Typical values are 8 or 16.
