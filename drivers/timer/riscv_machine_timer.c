@@ -244,6 +244,8 @@ static int sys_clock_driver_init(void)
 	IRQ_CONNECT(SUPERVISOR_TIMER_IRQN, 0, timer_isr, NULL, 0);
 	last_ticks = stime() / CYC_PER_TICK;
 	last_count = last_ticks * CYC_PER_TICK;
+	// set_mtimecmp(last_count + CYC_PER_TICK);
+	// irq_enable(SUPERVISOR_TIMER_IRQN);
 	set_mtimecmp(last_count + CYC_PER_TICK);
 	irq_enable(SUPERVISOR_TIMER_IRQN);
 	return 0;

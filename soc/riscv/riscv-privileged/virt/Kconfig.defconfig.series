@@ -33,7 +33,8 @@ config MAX_IRQ_PER_AGGREGATOR
 config NUM_IRQS
 	default 1035
 
-config PMP_SLOTS
-	default 16
+
+config SPMP_SLOTS
+	default 64
 
 endif

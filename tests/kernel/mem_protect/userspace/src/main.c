@@ -246,12 +246,12 @@ ZTEST_USER(userspace, test_disable_mmu_mpu)
 	set_fault(K_ERR_CPU_EXCEPTION);
 
 	/*
-	 * Try to make everything accessible through PMP slot 3
+	 * Try to make everything accessible through SPMP slot 3
 	 * which should not be locked.
 	 */
 	// #define CSR_SMPUADDR3 0x1b3, #define CSR_SMPUCFG0 0x1a0
 	SMPU_WRITE_CFG(0x1b3, LLONG_MAX);
-	SMPU_WRITE_CFG(0x1a0, (PMP_R|PMP_W|PMP_X|PMP_NAPOT) << 24);
+	SMPU_WRITE_CFG(0x1a0, (SPMP_R|SPMP_W|SPMP_X|SPMP_NAPOT) << 24);
 #else
 #error "Not implemented for this architecture"
 #endif

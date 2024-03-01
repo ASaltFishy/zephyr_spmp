@@ -1057,7 +1057,7 @@ endmenu
 
 config MAX_DOMAIN_PARTITIONS
 	int "Maximum number of partitions per memory domain"
-	default 16
+	default 64
 	range 0 255
 	depends on USERSPACE
 	help
