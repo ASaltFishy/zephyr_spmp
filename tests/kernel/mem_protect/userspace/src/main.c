@@ -262,44 +262,12 @@ ZTEST_USER(userspace, test_disable_mmu_mpu)
 	set_fault(K_ERR_CPU_EXCEPTION);
 
 	/*
-	 * Try to make everything accessible through PMP slot 3
+	 * Try to make everything accessible through SPMP slot 3
 	 * which should not be locked.
 	 */
-	csr_write(pmpaddr3, LLONG_MAX);
-	csr_write(pmpcfg0, (PMP_R|PMP_W|PMP_X|PMP_NAPOT) << 24);
-#elif defined(CONFIG_XTENSA)
-	set_fault(K_ERR_CPU_EXCEPTION);
-
-#if defined(CONFIG_XTENSA_MMU)
-	/* Reset way 6 to do identity mapping.
-	 * Complier would complain addr going out of range if we
-	 * simply do addr = i * 0x20000000 inside the loop. So
-	 * we do increment instead.
-	 */
-	uint32_t addr = 0U;
-
-	for (int i = 0; i < 8; i++) {
-		uint32_t attr = addr | XTENSA_MMU_PERM_WX;
-
-		__asm__ volatile("wdtlb %0, %1; witlb %0, %1"
-				 :: "r"(attr), "r"(addr));
-
-		addr += 0x20000000;
-	}
-#endif
-
-#if defined(CONFIG_XTENSA_MPU)
-	/* Technically, simply clearing out all foreground MPU entries
-	 * allows the background map to take over, so it is not exactly
-	 * disabling MPU. However, this test is about catching userspace
-	 * trying to manipulate the MPU regions. So as long as there is
-	 * kernel OOPS, we would be fine.
-	 */
-	for (int i = 0; i < XTENSA_MPU_NUM_ENTRIES; i++) {
-		__asm__ volatile("wptlb %0, %1\n\t" : : "a"(i), "a"(0));
-	}
-#endif
-
+	// #define CSR_SMPUADDR3 0x1b3, #define CSR_SMPUCFG0 0x1a0
+	SMPU_WRITE_CFG(0x1b3, LLONG_MAX);
+	SMPU_WRITE_CFG(0x1a0, (SPMP_R|SPMP_W|SPMP_X|SPMP_NAPOT) << 24);
 #else
 #error "Not implemented for this architecture"
 #endif

@@ -149,6 +149,7 @@
 #define SPMP_X 		0x04
 #define SPMP_W 		0x02
 #define SPMP_R 		0x01
+#define SPMP_SHIFT	2
 
 #define SPMP_TOR	0x08
 #define SPMP_NA4	0x10

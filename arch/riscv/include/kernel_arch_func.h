@@ -17,7 +17,7 @@
 
 #include <kernel_arch_data.h>
 #include <zephyr/arch/riscv/sbi.h>
-#include <pmp.h>
+#include <spmp.h>
 
 #include <zephyr/platform/hooks.h>
 
@@ -55,9 +55,8 @@ static ALWAYS_INLINE void arch_kernel_init(void)
 		hart_x++;
 	}
 #endif
-#ifdef CONFIG_RISCV_PMP
-	// no need to initialize pmp as opensbi has covered this
-	z_riscv_pmp_init();
+#ifdef CONFIG_RISCV_SPMP
+	z_riscv_spmp_init();
 #endif
 #ifdef CONFIG_SOC_PER_CORE_INIT_HOOK
 	soc_per_core_init_hook();

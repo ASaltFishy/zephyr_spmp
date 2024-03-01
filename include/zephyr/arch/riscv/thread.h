@@ -27,22 +27,22 @@
  * saved/restored when a context switch occurs.
  */
 struct _callee_saved {
-	unsigned long sp;	/* Stack pointer, (x2 register) */
-	unsigned long ra;	/* return address */
+    unsigned long sp; /* Stack pointer, (x2 register) */
+    unsigned long ra; /* return address */
 
-	unsigned long s0;	/* saved register/frame pointer */
-	unsigned long s1;	/* saved register */
+    unsigned long s0; /* saved register/frame pointer */
+    unsigned long s1; /* saved register */
 #if !defined(CONFIG_RISCV_ISA_RV32E)
-	unsigned long s2;	/* saved register */
-	unsigned long s3;	/* saved register */
-	unsigned long s4;	/* saved register */
-	unsigned long s5;	/* saved register */
-	unsigned long s6;	/* saved register */
-	unsigned long s7;	/* saved register */
-	unsigned long s8;	/* saved register */
-	unsigned long s9;	/* saved register */
-	unsigned long s10;	/* saved register */
-	unsigned long s11;	/* saved register */
+    unsigned long s2;  /* saved register */
+    unsigned long s3;  /* saved register */
+    unsigned long s4;  /* saved register */
+    unsigned long s5;  /* saved register */
+    unsigned long s6;  /* saved register */
+    unsigned long s7;  /* saved register */
+    unsigned long s8;  /* saved register */
+    unsigned long s9;  /* saved register */
+    unsigned long s10; /* saved register */
+    unsigned long s11; /* saved register */
 #endif
 };
 typedef struct _callee_saved _callee_saved_t;
@@ -56,33 +56,33 @@ typedef struct _callee_saved _callee_saved_t;
 #endif
 
 struct z_riscv_fp_context {
-	RV_FP_TYPE fa0, fa1, fa2, fa3, fa4, fa5, fa6, fa7;
-	RV_FP_TYPE ft0, ft1, ft2, ft3, ft4, ft5, ft6, ft7, ft8, ft9, ft10, ft11;
-	RV_FP_TYPE fs0, fs1, fs2, fs3, fs4, fs5, fs6, fs7, fs8, fs9, fs10, fs11;
-	uint32_t fcsr;
+    RV_FP_TYPE fa0, fa1, fa2, fa3, fa4, fa5, fa6, fa7;
+    RV_FP_TYPE ft0, ft1, ft2, ft3, ft4, ft5, ft6, ft7, ft8, ft9, ft10, ft11;
+    RV_FP_TYPE fs0, fs1, fs2, fs3, fs4, fs5, fs6, fs7, fs8, fs9, fs10, fs11;
+    uint32_t fcsr;
 };
 typedef struct z_riscv_fp_context z_riscv_fp_context_t;
 
-#define PMP_M_MODE_SLOTS 8	/* 8 is plenty enough for m-mode */
+#define SPMP_S_MODE_SLOTS 8 /* 8 is plenty enough for m-mode */
 
 struct _thread_arch {
 #ifdef CONFIG_FPU_SHARING
-	struct z_riscv_fp_context saved_fp_context;
-	bool fpu_recently_used;
-	uint8_t exception_depth;
+    struct z_riscv_fp_context saved_fp_context;
+    bool fpu_recently_used;
+    uint8_t exception_depth;
 #endif
 #ifdef CONFIG_USERSPACE
-	unsigned long priv_stack_start;
-	unsigned long u_mode_pmpaddr_regs[CONFIG_PMP_SLOTS];
-	unsigned long u_mode_pmpcfg_regs[CONFIG_PMP_SLOTS / sizeof(unsigned long)];
-	unsigned int u_mode_pmp_domain_offset;
-	unsigned int u_mode_pmp_end_index;
-	unsigned int u_mode_pmp_update_nr;
+    unsigned long priv_stack_start;
+    unsigned long u_mode_spmpaddr_regs[CONFIG_SPMP_SLOTS];
+    unsigned long u_mode_spmpcfg_regs[CONFIG_SPMP_SLOTS / sizeof(unsigned long)];
+    unsigned int u_mode_spmp_domain_offset;
+    unsigned int u_mode_spmp_end_index;
+    unsigned int u_mode_spmp_update_nr;
 #endif
-#ifdef CONFIG_PMP_STACK_GUARD
-	unsigned int m_mode_pmp_end_index;
-	unsigned long m_mode_pmpaddr_regs[PMP_M_MODE_SLOTS];
-	unsigned long m_mode_pmpcfg_regs[PMP_M_MODE_SLOTS / sizeof(unsigned long)];
+#ifdef CONFIG_SPMP_STACK_GUARD
+    unsigned int s_mode_spmp_end_index;
+    unsigned long s_mode_spmpaddr_regs[SPMP_S_MODE_SLOTS];
+    unsigned long s_mode_spmpcfg_regs[SPMP_S_MODE_SLOTS / sizeof(unsigned long)];
 #endif
 };
 

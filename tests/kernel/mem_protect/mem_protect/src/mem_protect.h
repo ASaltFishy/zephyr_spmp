@@ -62,8 +62,8 @@ static inline void set_fault_valid(bool valid)
 #elif defined(CONFIG_ARM)
 #define MEM_REGION_ALLOC (Z_THREAD_MIN_STACK_ALIGN)
 #elif defined(CONFIG_RISCV)
-#if defined(CONFIG_RISCV_PMP)
-#define MEM_REGION_ALLOC (CONFIG_PMP_GRANULARITY)
+#if defined(CONFIG_RISCV_SPMP)
+#define MEM_REGION_ALLOC (CONFIG_SPMP_GRANULARITY)
 #else
 #define MEM_REGION_ALLOC (4)
 #endif
