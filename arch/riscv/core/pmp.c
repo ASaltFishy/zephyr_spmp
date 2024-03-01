@@ -496,10 +496,6 @@ void z_riscv_pmp_usermode_init(struct k_thread *thread) {
 void z_riscv_pmp_usermode_prepare(struct k_thread *thread) {
     // set ROM spmp to new thread
     unsigned int index = z_riscv_pmp_thread_init(PMP_U_MODE(thread));
-#ifdef CONFIG_PMP_STACK_GUARD
-    /* stack guard will occupy some entries*/
-    index += 2;
-#endif
 
     LOG_DBG("pmp_usermode_prepare for thread %p", thread);
 
