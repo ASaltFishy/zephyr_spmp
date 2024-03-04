@@ -43,7 +43,7 @@
 
 	.macro get_current_cpu dst
 #if defined(CONFIG_SMP) || defined(CONFIG_USERSPACE)
-	csrr \dst, mscratch
+	csrr \dst, sscratch
 #else
 	la \dst, _kernel + ___kernel_t_cpus_OFFSET
 #endif
@@ -116,15 +116,15 @@ SECTION_FUNC(exception.entry, _isr_wrapper)
 
 #ifdef CONFIG_USERSPACE
 	/* retrieve address of _current_cpu preserving s0 */
-	csrrw s0, mscratch, s0
+	csrrw s0, sscratch, s0
 
 	/* preserve t0 and t1 temporarily */
 	sr t0, _curr_cpu_arch_user_exc_tmp0(s0)
 	sr t1, _curr_cpu_arch_user_exc_tmp1(s0)
 
 	/* determine if we come from user space */
-	csrr t0, mstatus
-	li t1, MSTATUS_MPP
+	csrr t0, sstatus
+	li t1, SSTATUS_SPP
 	and t0, t0, t1
 	bnez t0, 1f
 
@@ -151,7 +151,7 @@ SECTION_FUNC(exception.entry, _isr_wrapper)
 	lr t1, _curr_cpu_arch_user_exc_tmp1(s0)
 
 	/* retrieve original s0 and restore _current_cpu in mscratch */
-	csrrw s0, mscratch, s0
+	csrrw s0, sscratch, s0
 #endif
 
 #ifdef CONFIG_RISCV_SOC_HAS_ISR_STACKING
@@ -167,24 +167,24 @@ SECTION_FUNC(exception.entry, _isr_wrapper)
 	get_current_cpu s0
 
 	/* Save MEPC register */
-	csrr t0, mepc
+	csrr t0, sepc
 	sr t0, __z_arch_esf_t_mepc_OFFSET(sp)
 
-	/* Save MSTATUS register */
-	csrr t2, mstatus
+	/* Save SSTATUS register */
+	csrr t2, sstatus
 	sr t2, __z_arch_esf_t_mstatus_OFFSET(sp)
 
 #if defined(CONFIG_FPU_SHARING)
 	/* determine if FPU access was disabled */
-	li t1, MSTATUS_FS
+	li t1, SSTATUS_FS
 	and t1, t1, t2
 	bnez t1, no_fp
 	/* determine if this is an Illegal Instruction exception */
-	csrr t2, mcause
+	csrr t2, scause
 	li t1, 2		/* 2 = illegal instruction */
 	bne t1, t2, no_fp
 	/* determine if we trapped on an FP instruction. */
-	csrr t2, mtval		/* get faulting instruction */
+	csrr t2, stval		/* get faulting instruction */
 #ifdef CONFIG_QEMU_TARGET
 	/*
 	 * Some implementations may not support MTVAL in this capacity.
@@ -295,22 +295,22 @@ no_fp:	/* increment _current->arch.exception_depth */
 	jal ra, __soc_is_irq
 	bnez a0, is_interrupt
 #else
-	csrr t0, mcause
-	srli t0, t0, RISCV_MCAUSE_IRQ_POS
+	csrr t0, scause
+	srli t0, t0, RISCV_SCAUSE_IRQ_POS
 	bnez t0, is_interrupt
 #endif
 
 	/*
-	 * If the exception is the result of an ECALL, check whether to
+	 * If the exception is the result of an syscall, check whether to
 	 * perform a context-switch or an IRQ offload. Otherwise call _Fault
 	 * to report the exception.
 	 */
-	csrr t0, mcause
+	csrr t0, scause
 	li t2, CONFIG_RISCV_MCAUSE_EXCEPTION_MASK
 	and t0, t0, t2
 
 	/*
-	 * If mcause == RISCV_EXC_ECALLM, handle system call from
+	 * If scause == RISCV_EXC_ECALLM, handle system call from
 	 * kernel thread.
 	 */
 	li t1, RISCV_EXC_ECALLM
@@ -318,7 +318,7 @@ no_fp:	/* increment _current->arch.exception_depth */
 
 #ifdef CONFIG_USERSPACE
 	/*
-	 * If mcause == RISCV_EXC_ECALLU, handle system call
+	 * If scause == RISCV_EXC_ECALLU, handle system call
 	 * for user mode thread.
 	 */
 	li t1, RISCV_EXC_ECALLU
@@ -427,12 +427,12 @@ is_user_syscall:
 	 * We came from userspace and need to reconfigure the
 	 * PMP for kernel mode stack guard.
 	 */
-	lr a0, ___cpu_t_current_OFFSET(s0)
-	call z_riscv_pmp_stackguard_enable
+	# lr a0, ___cpu_t_current_OFFSET(s0)
+	# call z_riscv_pmp_stackguard_enable
 #endif
 
 	/* It is safe to re-enable IRQs now */
-	csrs mstatus, MSTATUS_IEN
+	csrs sstatus, SSTATUS_IEN
 
 	/*
 	 * Same as for is_kernel_syscall: increment saved MEPC by 4 to
@@ -486,7 +486,7 @@ valid_syscall_id:
 	sr a0, __z_arch_esf_t_a0_OFFSET(sp)
 
 	/* Disable IRQs again before leaving */
-	csrc mstatus, MSTATUS_IEN
+	csrc sstatus, SSTATUS_IEN
 	j might_have_rescheduled
 #endif /* CONFIG_USERSPACE */
 
@@ -542,7 +542,7 @@ on_irq_stack:
 #endif
 
 	/* Get IRQ causing interrupt */
-	csrr a0, mcause
+	csrr a0, scause
 	li t0, CONFIG_RISCV_MCAUSE_EXCEPTION_MASK
 	and a0, a0, t0
 
@@ -646,11 +646,11 @@ no_reschedule:
 fp_trap_exit:
 #endif
 
-	/* Restore MEPC and MSTATUS registers */
+	/* Restore SEPC and SSTATUS registers */
 	lr t0, __z_arch_esf_t_mepc_OFFSET(sp)
 	lr t2, __z_arch_esf_t_mstatus_OFFSET(sp)
-	csrw mepc, t0
-	csrw mstatus, t2
+	csrw sepc, t0
+	csrw sstatus, t2
 
 #ifdef CONFIG_USERSPACE
 	/*
@@ -658,14 +658,14 @@ fp_trap_exit:
 	 * set is_user_mode to true and preserve our kernel mode stack for
 	 * the next exception to come.
 	 */
-	li t1, MSTATUS_MPP
+	li t1, SSTATUS_SPP
 	and t0, t2, t1
 	bnez t0, 1f
 
 #ifdef CONFIG_PMP_STACK_GUARD
 	/* Remove kernel stack guard and Reconfigure PMP for user mode */
-	lr a0, ___cpu_t_current_OFFSET(s0)
-	call z_riscv_pmp_usermode_enable
+	# lr a0, ___cpu_t_current_OFFSET(s0)
+	# call z_riscv_pmp_usermode_enable
 #endif
 
 	/* Set our per-thread usermode flag */
@@ -708,4 +708,4 @@ fp_trap_exit:
 
 #endif /* CONFIG_RISCV_SOC_HAS_ISR_STACKING */
 
-	mret
+	sret

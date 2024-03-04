@@ -35,6 +35,7 @@
 #include <zephyr/timing/timing.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/pm/device_runtime.h>
+#include <zephyr/sbi.h>
 LOG_MODULE_REGISTER(os, CONFIG_KERNEL_LOG_LEVEL);
 
 BUILD_ASSERT(CONFIG_MP_NUM_CPUS == CONFIG_MP_MAX_NUM_CPUS,

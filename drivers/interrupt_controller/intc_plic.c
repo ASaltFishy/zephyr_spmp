@@ -125,7 +125,8 @@ static inline mem_addr_t get_context_en_addr(const struct device *dev, uint32_t 
 #if CONFIG_SMP
 	hartid = _kernel.cpus[cpu_num].arch.hartid;
 #else
-	hartid = arch_proc_id();
+	// hartid = arch_proc_id();
+	hartid=0;
 #endif
 	return  config->irq_en + get_first_context(hartid) * CONTEXT_ENABLE_SIZE;
 }

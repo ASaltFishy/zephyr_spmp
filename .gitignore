@@ -16,6 +16,7 @@ build*/
 !scripts/pylib/build_helpers
 cscope.*
 .dir
+*.dtb
 
 /*.patch
 
