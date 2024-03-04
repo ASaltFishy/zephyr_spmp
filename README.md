@@ -23,4 +23,13 @@ export ZEPHYR_BASE={your_zephyr_root_dir}
 export QEMU_BIOS_PATH={dir_to_opensbi}/build/platform/generic/firmware
 export QEMU_BIN_PATH={dir_to_qemu}/build
 ```
-### Build the Hello_world_user Sample 
+### Build the hello_world_user Sample
+``` bash
+# create build dir
+cd samples_spmp/userspace/hello_world_user
+mkdir build
+cd build
+# use cmake and ninja to build and run the sample
+cmake -GNinja -DBOARD=qemu_riscv64 ..
+ninja run
+```

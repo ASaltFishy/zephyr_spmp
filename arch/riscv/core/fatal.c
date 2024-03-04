@@ -97,7 +97,7 @@ static char *cause_str(unsigned long cause)
 
 static bool bad_stack_pointer(z_arch_esf_t *esf)
 {
-#ifdef CONFIG_PMP_STACK_GUARD
+#ifdef CONFIG_SPMP_STACK_GUARD
 	/*
 	 * Check if the kernel stack pointer prior this exception (before
 	 * storing the exception stack frame) was in the stack guard area.
@@ -124,7 +124,7 @@ static bool bad_stack_pointer(z_arch_esf_t *esf)
 		  + Z_RISCV_STACK_GUARD_SIZE) {
 		return true;
 	}
-#endif /* CONFIG_PMP_STACK_GUARD */
+#endif /* CONFIG_SPMP_STACK_GUARD */
 
 #ifdef CONFIG_USERSPACE
 	if ((esf->mstatus & MSTATUS_MPP) == 0 &&
@@ -144,7 +144,7 @@ void _Fault(z_arch_esf_t *esf)
 {
 #ifdef CONFIG_USERSPACE
 	/*
-	 * Perform an assessment whether an PMP fault shall be
+	 * Perform an assessment whether an SPMP fault shall be
 	 * treated as recoverable.
 	 */
 	for (int i = 0; i < ARRAY_SIZE(exceptions); i++) {

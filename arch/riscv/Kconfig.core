@@ -5,7 +5,7 @@ menu "RISCV core"
 
 config RISCV_CORE_E31
 	bool "E31 core"
-	select RISCV_PMP
+	select RISCV_SPMP
 	select RISCV_ISA_RV32I
 	select RISCV_ISA_EXT_M
 	select RISCV_ISA_EXT_A

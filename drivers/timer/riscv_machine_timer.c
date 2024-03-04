@@ -5,14 +5,13 @@
  */
 
 #include <limits.h>
-
-#include <zephyr/init.h>
+#include <zephyr/arch/riscv/sbi.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/timer/system_timer.h>
-#include <zephyr/sys_clock.h>
-#include <zephyr/spinlock.h>
+#include <zephyr/init.h>
 #include <zephyr/irq.h>
-#include <zephyr/sbi.h>
+#include <zephyr/spinlock.h>
+#include <zephyr/sys_clock.h>
 
 /* andestech,machine-timer */
 #if DT_HAS_COMPAT_STATUS_OKAY(andestech_machine_timer)
@@ -93,6 +92,7 @@ static uint32_t last_elapsed;
 const int32_t z_sys_timer_irq_for_test = SUPERVISOR_TIMER_IRQN;
 #endif
 
+extern int sbi_set_timer(uint64_t time);
 
 // // each hart has a mtimecmp register, so we need to add offset
 // static uint64_t get_hart_mtimecmp(void)
@@ -103,12 +103,12 @@ const int32_t z_sys_timer_irq_for_test = SUPERVISOR_TIMER_IRQN;
 static void set_mtimecmp(uint64_t time)
 {
 #ifdef CONFIG_64BIT
-	// *(volatile uint64_t *)get_hart_mtimecmp() = time;
-	SBI_TIMER(time);
+    // *(volatile uint64_t *)get_hart_mtimecmp() = time;
+    sbi_set_timer(time);
 
 #else
-	SBI_TIMER(time);
-	// volatile uint32_t *r = (uint32_t *)(uint32_t)get_hart_mtimecmp();
+    sbi_set_timer(time);
+    // volatile uint32_t *r = (uint32_t *)(uint32_t)get_hart_mtimecmp();
 
 	/* Per spec, the RISC-V MTIME/MTIMECMP registers are 64 bit,
 	 * but are NOT internally latched for multiword transfers.  So
