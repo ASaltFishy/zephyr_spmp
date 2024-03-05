@@ -129,6 +129,7 @@ wait_secondary_wake_flag:
 	j loop_unconfigured_cores
 #endif
 
+
 loop_unconfigured_cores:
 	wfi
 	j loop_unconfigured_cores

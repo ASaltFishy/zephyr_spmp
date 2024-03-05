@@ -150,7 +150,7 @@ SECTION_FUNC(exception.entry, _isr_wrapper)
 	lr t0, _curr_cpu_arch_user_exc_tmp0(s0)
 	lr t1, _curr_cpu_arch_user_exc_tmp1(s0)
 
-	/* retrieve original s0 and restore _current_cpu in mscratch */
+	/* retrieve original s0 and restore _current_cpu in sscratch */
 	csrrw s0, sscratch, s0
 #endif
 
@@ -310,10 +310,10 @@ no_fp:	/* increment _current->arch.exception_depth */
 	and t0, t0, t2
 
 	/*
-	 * If scause == RISCV_EXC_ECALLM, handle system call from
+	 * If scause == RISCV_EXC_ECALLS, handle system call from
 	 * kernel thread.
 	 */
-	li t1, RISCV_EXC_ECALLM
+	li t1, RISCV_EXC_ECALLS
 	beq t0, t1, is_kernel_syscall
 
 #ifdef CONFIG_USERSPACE
@@ -491,7 +491,7 @@ is_interrupt:
 	 * SPMP for kernel mode stack guard.
 	 */
 	lr t0, __z_arch_esf_t_mstatus_OFFSET(sp)
-	li t1, MSTATUS_MPP
+	li t1, SSTATUS_SPP
 	and t0, t0, t1
 	bnez t0, 1f
 	lr a0, ___cpu_t_current_OFFSET(s0)

@@ -11,6 +11,9 @@
 #include <zephyr/sys/atomic.h>
 #include <zephyr/arch/riscv/irq.h>
 #include <zephyr/drivers/pm_cpu_ops.h>
+#include <zephyr/arch/riscv/sbi.h>
+
+
 
 volatile struct {
 	arch_cpustart_t fn;
@@ -35,6 +38,7 @@ void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz,
 
 	riscv_cpu_sp = Z_KERNEL_STACK_BUFFER(stack) + sz;
 	riscv_cpu_boot_flag = 0U;
+	sbi_hsm_hart_start(_kernel.cpus[cpu_num].arch.hartid,(unsigned long)__start);
 
 #ifdef CONFIG_PM_CPU_OPS
 	if (pm_cpu_on(cpu_num, (uintptr_t)&__start)) {
@@ -58,7 +62,7 @@ void arch_secondary_cpu_init(int hartid)
 			cpu_num = i;
 		}
 	}
-	csr_write(mscratch, &_kernel.cpus[cpu_num]);
+	csr_write(sscratch, &_kernel.cpus[cpu_num]);
 #ifdef CONFIG_SMP
 	_kernel.cpus[cpu_num].arch.online = true;
 #endif
@@ -72,7 +76,7 @@ void arch_secondary_cpu_init(int hartid)
 	z_riscv_spmp_init();
 #endif
 #ifdef CONFIG_SMP
-	irq_enable(RISCV_IRQ_MSOFT);
+	irq_enable(RISCV_IRQ_SSOFT);
 #endif
 	riscv_cpu_init[cpu_num].fn(riscv_cpu_init[cpu_num].arg);
 }
@@ -95,7 +99,10 @@ void arch_sched_ipi(void)
 	for (unsigned int i = 0; i < num_cpus; i++) {
 		if (i != id && _kernel.cpus[i].arch.online) {
 			atomic_set_bit(&cpu_pending_ipi[i], IPI_SCHED);
-			MSIP(_kernel.cpus[i].arch.hartid) = 1;
+			uint64_t cpumask = 0;
+			atomic_set_bit((atomic_t *)&cpumask,_kernel.cpus[i].arch.hartid);
+			// hart-mask_base starts from 0
+			sbi_send_ipi(cpumask,0);
 		}
 	}
 
@@ -106,7 +113,9 @@ void arch_sched_ipi(void)
 void arch_flush_fpu_ipi(unsigned int cpu)
 {
 	atomic_set_bit(&cpu_pending_ipi[cpu], IPI_FPU_FLUSH);
-	MSIP(_kernel.cpus[cpu].arch.hartid) = 1;
+	// opensbi has already covered this.
+	// MSIP(_kernel.cpus[cpu].arch.hartid) = 1;
+
 }
 #endif
 
@@ -114,7 +123,8 @@ static void sched_ipi_handler(const void *unused)
 {
 	ARG_UNUSED(unused);
 
-	MSIP(csr_read(mhartid)) = 0;
+	// opensbi has already covered this.
+	// MSIP(csr_read(mhartid)) = 0;
 
 	atomic_val_t pending_ipi = atomic_clear(&cpu_pending_ipi[_current_cpu->id]);
 
@@ -124,7 +134,7 @@ static void sched_ipi_handler(const void *unused)
 #ifdef CONFIG_FPU_SHARING
 	if (pending_ipi & ATOMIC_MASK(IPI_FPU_FLUSH)) {
 		/* disable IRQs */
-		csr_clear(mstatus, MSTATUS_IEN);
+		csr_clear(sstatus, SSTATUS_IEN);
 		/* perform the flush */
 		arch_flush_local_fpu();
 		/*
@@ -160,8 +170,8 @@ void arch_spin_relax(void)
 int arch_smp_init(void)
 {
 
-	IRQ_CONNECT(RISCV_IRQ_MSOFT, 0, sched_ipi_handler, NULL, 0);
-	irq_enable(RISCV_IRQ_MSOFT);
+	IRQ_CONNECT(RISCV_IRQ_SSOFT, 0, sched_ipi_handler, NULL, 0);
+	irq_enable(RISCV_IRQ_SSOFT);
 
 	return 0;
 }

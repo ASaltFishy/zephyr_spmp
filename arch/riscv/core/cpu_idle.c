@@ -10,7 +10,7 @@
 void __weak arch_cpu_idle(void)
 {
 	sys_trace_idle();
-	irq_unlock(MSTATUS_IEN);
+	irq_unlock(SSTATUS_IEN);
 	__asm__ volatile("wfi");
 }
 
