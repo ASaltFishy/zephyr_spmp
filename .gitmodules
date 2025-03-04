@@ -1,0 +1,8 @@
+[submodule "qemu"]
+	path = qemu
+	url = git@ipads.se.sjtu.edu.cn:HWsystem/smpu/qemu.git
+	branch = spmp-for-zephyr
+[submodule "opensbi"]
+	path = opensbi
+	url = git@ipads.se.sjtu.edu.cn:HWsystem/smpu/opensbi.git
+	branch = opensbi-for-zephyr
