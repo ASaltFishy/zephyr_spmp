@@ -261,6 +261,7 @@ void z_riscv_spmp_init(void) {
 #endif
 
 #ifdef CONFIG_SPMP_STACK_GUARD
+#ifdef CONFIG_MULTITHREADING
     /*
      * Set the stack guard for this CPU's IRQ stack by making the bottom
      * addresses inaccessible.
@@ -269,8 +270,24 @@ void z_riscv_spmp_init(void) {
                   (uintptr_t)z_interrupt_stacks[_current_cpu->id],
                   Z_RISCV_STACK_GUARD_SIZE,
                   spmp_addr, spmp_cfg, ARRAY_SIZE(spmp_addr));
-#endif
+	write_spmp_entries(0, index, true, spmp_addr, spmp_cfg, ARRAY_SIZE(spmp_addr));
+#else
+	/* Without multithreading setup stack guards for IRQ and main stacks */
+	set_spmp_entry(&index, SPMP_NONE,
+		      (uintptr_t)z_interrupt_stacks,
+		      Z_RISCV_STACK_GUARD_SIZE,
+		      spmp_addr, spmp_cfg, ARRAY_SIZE(spmp_addr));
 
+	set_spmp_entry(&index, SPMP_NONE,
+		      (uintptr_t)z_main_stack,
+		      Z_RISCV_STACK_GUARD_SIZE,
+		      spmp_addr, spmp_cfg, ARRAY_SIZE(spmp_addr));
+
+	/* Write those entries to PMP regs. */
+	write_spmp_entries(0, index, true, spmp_addr, spmp_cfg, ARRAY_SIZE(spmp_addr));
+#endif /* CONFIG_MULTITHREADING */
+#else
+#endif
     write_spmp_entries(0, index, true, spmp_addr, spmp_cfg, ARRAY_SIZE(spmp_addr));
 
 #ifdef CONFIG_SMP
@@ -361,9 +378,24 @@ void z_riscv_spmp_stackguard_enable(struct k_thread *thread) {
                       SPMP_S_MODE(thread));
 
     /* Activate our non-locked SPMP entries in m-mode */
-    // csr_set(mstatus, MSTATUS_MPRV);
+    // csr_set(mstatus, MSTATUS_MPRV);S
 }
 
+void z_riscv_pmp_stackguard_disable(void)
+{
+
+	unsigned long spmp_addr[CONFIG_SPMP_SLOTS];
+	unsigned long spmp_cfg[CONFIG_SPMP_SLOTS / sizeof(unsigned long)];
+	unsigned int index = global_spmp_end_index;
+
+	/* Retrieve the pmpaddr value matching the last global PMP slot. */
+	spmp_addr[global_spmp_end_index - 1] = global_spmp_last_addr;
+
+	/* Write "catch all" entry and clear unlocked entries to PMP regs. */
+	write_spmp_entries(global_spmp_end_index, index,
+			  true, spmp_addr, spmp_cfg, ARRAY_SIZE(spmp_addr));
+
+}
 #endif /* CONFIG_SPMP_STACK_GUARD */
 
 #ifdef CONFIG_USERSPACE

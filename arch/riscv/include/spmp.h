@@ -10,6 +10,7 @@
 void z_riscv_spmp_init(void);
 void z_riscv_spmp_stackguard_prepare(struct k_thread *thread);
 void z_riscv_spmp_stackguard_enable(struct k_thread *thread);
+void z_riscv_spmp_stackguard_disable(void);
 void z_riscv_spmp_usermode_init(struct k_thread *thread);
 void z_riscv_spmp_usermode_prepare(struct k_thread *thread);
 void z_riscv_spmp_usermode_enable(struct k_thread *thread);
