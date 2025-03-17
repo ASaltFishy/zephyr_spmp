@@ -30,7 +30,7 @@
 #include <zephyr/arch/riscv/csr.h>
 #include <zephyr/kernel.h>
 #include <zephyr/linker/linker-defs.h>
-#include <zephyr/sys/arch_interface.h>
+#include<zephyr/arch/arch_interface.h>
 
 #define LOG_LEVEL CONFIG_MPU_LOG_LEVEL
 #include <zephyr/logging/log.h>
@@ -537,7 +537,7 @@ int arch_mem_domain_thread_remove(struct k_thread *thread) {
     ((inner_start) >= (outer_start) && (inner_size) <= (outer_size) && \
      ((inner_start) - (outer_start)) <= ((outer_size) - (inner_size)))
 
-int arch_buffer_validate(void *addr, size_t size, int write) {
+int arch_buffer_validate(const void *addr, size_t size, int write) {
     uintptr_t start = (uintptr_t)addr;
     int ret = -1;
 

@@ -230,9 +230,9 @@ void z_riscv_fault(struct arch_esf *esf)
 	__asm__ volatile("csrr %0, stval" : "=r" (stval));
 #endif
 
-	scause &= SOC_MCAUSE_EXP_MASK;
+	scause &= CONFIG_RISCV_SCAUSE_EXCEPTION_MASK;
 	LOG_ERR("");
-	LOG_ERR(" scause: %ld, %s", scause, cause_str(scause));
+	LOG_ERR(" scause: %ld, %s", scause, z_riscv_mcause_str(scause));
 #ifndef CONFIG_SOC_OPENISA_RV32M1_RISCV32
 	LOG_ERR("  stval: %lx", stval);
 #endif

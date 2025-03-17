@@ -163,11 +163,11 @@ static inline mem_addr_t get_context_en_addr(const struct device *dev, uint32_t 
 	/*
 	 * We want to return the irq_en address for the context of given hart.
 	 */
-#if CONFIG_MP_MAX_NUM_CPUS > 1
+// #if CONFIG_MP_MAX_NUM_CPUS > 1
 	hartid = _kernel.cpus[cpu_num].arch.hartid;
-#else
-	hartid = arch_proc_id();
-#endif
+// #else
+// 	hartid = arch_proc_id();
+// #endif
 	return config->irq_en + get_hart_context(dev, hartid) * CONTEXT_ENABLE_SIZE;
 }
 
@@ -187,11 +187,11 @@ static inline mem_addr_t get_threshold_priority_addr(const struct device *dev, u
 	const struct plic_config *config = dev->config;
 	uint32_t hartid;
 
-#if CONFIG_MP_MAX_NUM_CPUS > 1
+// #if CONFIG_MP_MAX_NUM_CPUS > 1
 	hartid = _kernel.cpus[cpu_num].arch.hartid;
-#else
-	hartid = arch_proc_id();
-#endif
+// #else
+// 	hartid = arch_proc_id();
+// #endif
 
 	return config->reg + (get_hart_context(dev, hartid) * CONTEXT_SIZE);
 }

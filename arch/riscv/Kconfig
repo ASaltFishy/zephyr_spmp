@@ -248,6 +248,13 @@ config RISCV_SOC_INTERRUPT_INIT
 	  Enable SOC-based interrupt initialization
 	  (call soc_interrupt_init, within _IntLibInit when enabled)
 
+config RISCV_MCAUSE_EXCEPTION_MASK
+	hex
+	default 0x7FFFFFFFFFFFFFFF if 64BIT
+	default 0x7FFFFFFF
+	help
+	  Specify the bits to use for exception code in mcause register.
+
 config RISCV_SCAUSE_EXCEPTION_MASK
 	hex
 	default 0x7FFFFFFFFFFFFFFF if 64BIT
@@ -293,8 +300,8 @@ config RV_BOOT_HART
 	  For RISC-V systems such as MPFS and FU540 this would be set to 1 to
 	  skip the E51 HART 0 as it is not usable in SMP configurations.
 
-config RISCV_PMP
-	bool "RISC-V PMP Support"
+config RISCV_SPMP
+	bool "RISC-V SPMP Support"
 	select THREAD_STACK_INFO
 	select CPU_HAS_MPU
 	select ARCH_HAS_USERSPACE

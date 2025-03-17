@@ -8,6 +8,7 @@ set(QEMU_CPU_TYPE_${ARCH} riscv64)
 set(QEMU_FLAGS_${ARCH}
   -nographic
   -machine virt
+  -cpu rv64,h=false
   -bios /home/lrc/zephyr-spmp/opensbi/build/platform/generic/firmware/fw_jump.elf
   -m 256
   )
