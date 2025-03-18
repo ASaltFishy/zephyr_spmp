@@ -88,16 +88,16 @@ FUNC_NORETURN void z_riscv_fatal_error_csf(unsigned int reason, const struct arc
 {
 	unsigned long mcause;
 
-	__asm__ volatile("csrr %0, mcause" : "=r" (mcause));
+	__asm__ volatile("csrr %0, scause" : "=r" (mcause));
 
 	mcause &= CONFIG_RISCV_MCAUSE_EXCEPTION_MASK;
 	LOG_ERR("");
-	LOG_ERR(" mcause: %ld, %s", mcause, z_riscv_mcause_str(mcause));
+	LOG_ERR(" scause: %ld, %s", mcause, z_riscv_mcause_str(mcause));
 
 #ifndef CONFIG_SOC_OPENISA_RV32M1
 	unsigned long mtval;
 
-	__asm__ volatile("csrr %0, mtval" : "=r" (mtval));
+	__asm__ volatile("csrr %0, stval" : "=r" (mtval));
 	LOG_ERR("  mtval: %lx", mtval);
 #endif /* CONFIG_SOC_OPENISA_RV32M1 */
 
@@ -236,6 +236,10 @@ void z_riscv_fault(struct arch_esf *esf)
 #ifndef CONFIG_SOC_OPENISA_RV32M1_RISCV32
 	LOG_ERR("  stval: %lx", stval);
 #endif
+
+	unsigned long sepc;
+	__asm__ volatile("csrr %0, sepc" : "=r" (sepc));
+	LOG_ERR("  sepc: 0x%lx", sepc);
 
 	unsigned int reason = K_ERR_CPU_EXCEPTION;
 
