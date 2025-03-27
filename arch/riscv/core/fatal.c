@@ -10,6 +10,48 @@
 #include <inttypes.h>
 #include <zephyr/arch/common/exc_handle.h>
 #include <zephyr/logging/log.h>
+
+#define SMPU_READ_CFG(g) ({                                    \
+    unsigned long csr_value;                                      \
+    __asm__ volatile("csrr %0, " #g : "=r"(csr_value)); \
+    csr_value;                                                    \
+})
+
+#define CSR_SMPUCFG0 0x1a0
+#define CSR_SMPUCFG1 0x1a1
+#define CSR_SMPUCFG2 0x1a2
+#define CSR_SMPUCFG3 0x1a3
+#define CSR_SMPUCFG4 0x1a4
+#define CSR_SMPUCFG5 0x1a5
+#define CSR_SMPUCFG6 0x1a6
+#define CSR_SMPUCFG7 0x1a7
+#define CSR_SMPUCFG8 0x1a8
+#define CSR_SMPUCFG9 0x1a9
+#define CSR_SMPUCFG10 0x1aa
+#define CSR_SMPUCFG11 0x1ab
+#define CSR_SMPUCFG12 0x1ac
+#define CSR_SMPUCFG13 0x1ad
+#define CSR_SMPUCFG14 0x1ae
+#define CSR_SMPUCFG15 0x1af
+#define CSR_SMPUADDR0 0x1b0
+#define CSR_SMPUADDR1 0x1b1
+#define CSR_SMPUADDR2 0x1b2
+#define CSR_SMPUADDR3 0x1b3
+#define CSR_SMPUADDR4 0x1b4
+#define CSR_SMPUADDR5 0x1b5
+#define CSR_SMPUADDR6 0x1b6
+#define CSR_SMPUADDR7 0x1b7
+#define CSR_SMPUADDR8 0x1b8
+#define CSR_SMPUADDR9 0x1b9
+#define CSR_SMPUADDR10 0x1ba
+#define CSR_SMPUADDR11 0x1bb
+#define CSR_SMPUADDR12 0x1bc
+#define CSR_SMPUADDR13 0x1bd
+#define CSR_SMPUADDR14 0x1be
+#define CSR_SMPUADDR15 0x1bf
+#define CSR_SMPUADDR16 0x1c0
+
+
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
 #ifdef CONFIG_USERSPACE
@@ -187,7 +229,7 @@ static bool bad_stack_pointer(struct arch_esf *esf)
 		return true;
 	}
 #endif /* CONFIG_MULTITHREADING */
-#endif /* CONFIG_PMP_STACK_GUARD */
+#endif /* CONFIG_SPMP_STACK_GUARD */
 
 #ifdef CONFIG_USERSPACE
 	if ((esf->mstatus & MSTATUS_MPP) == 0 &&
@@ -210,15 +252,15 @@ void z_riscv_fault(struct arch_esf *esf)
 	 * Perform an assessment whether an SPMP fault shall be
 	 * treated as recoverable.
 	 */
-	for (int i = 0; i < ARRAY_SIZE(exceptions); i++) {
-		unsigned long start = (unsigned long)exceptions[i].start;
-		unsigned long end = (unsigned long)exceptions[i].end;
+	// for (int i = 0; i < ARRAY_SIZE(exceptions); i++) {
+	// 	unsigned long start = (unsigned long)exceptions[i].start;
+	// 	unsigned long end = (unsigned long)exceptions[i].end;
 
-		if (esf->mepc >= start && esf->mepc < end) {
-			esf->mepc = (unsigned long)exceptions[i].fixup;
-			return;
-		}
-	}
+	// 	if (esf->mepc >= start && esf->mepc < end) {
+	// 		esf->mepc = (unsigned long)exceptions[i].fixup;
+	// 		return;
+	// 	}
+	// }
 #endif /* CONFIG_USERSPACE */
 
 	unsigned long scause;
@@ -241,16 +283,41 @@ void z_riscv_fault(struct arch_esf *esf)
 	__asm__ volatile("csrr %0, sepc" : "=r" (sepc));
 	LOG_ERR("  sepc: 0x%lx", sepc);
 
+	/* 检查是否为 Store/Load page fault (13 或 15) */
+	if (scause == 13 || scause == 15) {
+		    printf("\n-----------------DUMP SPMP---------------\n");
+			printf("spmpaddr0: 0x%lx\n", SMPU_READ_CFG(0x1b0) << 2);
+			printf("spmpaddr1: 0x%lx\n", SMPU_READ_CFG(0x1b1) << 2);
+			printf("spmpaddr2: 0x%lx\n", SMPU_READ_CFG(0x1b2) << 2);
+			printf("spmpaddr3: 0x%lx\n", SMPU_READ_CFG(0x1b3) << 2);
+			printf("spmpaddr4: 0x%lx\n", SMPU_READ_CFG(0x1b4) << 2);
+			printf("spmpaddr5: 0x%lx\n", SMPU_READ_CFG(0x1b5) << 2);
+			printf("spmpaddr6: 0x%lx\n", SMPU_READ_CFG(0x1b6) << 2);
+			printf("spmpaddr7: 0x%lx\n", SMPU_READ_CFG(0x1b7) << 2);
+			printf("spmpaddr8: 0x%lx\n", SMPU_READ_CFG(0x1b8) << 2);
+			printf("spmpaddr9: 0x%lx\n", SMPU_READ_CFG(0x1b9) << 2);
+			printf("spmpaddr10: 0x%lx\n", SMPU_READ_CFG(0x1ba) << 2);
+			printf("spmpaddr11: 0x%lx\n", SMPU_READ_CFG(0x1bb) << 2);
+			printf("spmpaddr12: 0x%lx\n", SMPU_READ_CFG(0x1bc) << 2);
+			printf("spmpaddr13: 0x%lx\n", SMPU_READ_CFG(0x1bd) << 2);
+			printf("spmpaddr14: 0x%lx\n", SMPU_READ_CFG(0x1be) << 2);
+			printf("spmpaddr15: 0x%lx\n", SMPU_READ_CFG(0x1bf) << 2);
+
+			// print SPMP registers
+			printf("spmpcfg0: 0x%lx\n", SMPU_READ_CFG(0x1a0));
+			printf("-----------------DUMP SPMP---------------\n\n");
+	}
+
 	unsigned int reason = K_ERR_CPU_EXCEPTION;
 
 	if (bad_stack_pointer(esf)) {
-#ifdef CONFIG_PMP_STACK_GUARD
+#ifdef CONFIG_SPMP_STACK_GUARD
 		/*
 		 * Remove the thread's PMP setting to prevent triggering a stack
 		 * overflow error again due to the previous configuration.
 		 */
-		z_riscv_pmp_stackguard_disable();
-#endif /* CONFIG_PMP_STACK_GUARD */
+		z_riscv_spmp_stackguard_disable();
+#endif /* CONFIG_SPMP_STACK_GUARD */
 		reason = K_ERR_STACK_CHK_FAIL;
 	}
 

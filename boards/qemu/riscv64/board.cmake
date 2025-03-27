@@ -7,9 +7,11 @@ set(QEMU_CPU_TYPE_${ARCH} riscv64)
 
 set(QEMU_FLAGS_${ARCH}
   -nographic
-  -machine virt
-  -cpu rv64,h=false
+  -machine virt,aclint=on
+  -cpu rv64,h=on
   -bios /home/lrc/zephyr-spmp/opensbi/build/platform/generic/firmware/fw_jump.elf
   -m 256
+  -d int,guest_errors,exec 
+  -D /home/lrc/zephyr-spmp/qemu.log
   )
 board_set_debugger_ifnset(qemu)
