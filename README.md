@@ -6,7 +6,9 @@ It's the same as usaul, please refer to https://docs.zephyrproject.org/latest/de
 ### Get Code and Build Them
 Clone Zephyr and submodules (Qemu, OpenSBI).
 ```bash
-git clone -b v3.6-branch git@github.com:ASaltFishy/zephyr_spmp.git --recursive 
+git clone -b v3.6-branch git@github.com:ASaltFishy/zephyr_spmp.git
+git submodule init
+git submodule update
 ```
 
 - Set Environment Variables
