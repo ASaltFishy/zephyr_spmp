@@ -1,0 +1,8 @@
+[submodule "opensbi"]
+	path = opensbi
+	url = git@github.com:ASaltFishy/opensbi_for_zephyr.git
+	branch = opensbi-for-zephyr
+[submodule "qemu"]
+	path = qemu
+	url = git@github.com:ybc-alkaid/qemu.git
+	branch = spmp-for-zephyr
